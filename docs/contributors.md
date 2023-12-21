@@ -1,65 +1,48 @@
 # Developing Status-AddOn
 
-TODO - update all sections
-
-## Build and push manually image
-
-Use GH personal access token with write to packages permissions to login to ghcr.io
+## Run add-on agent in dev mode
 
 ```shell
-docker login ghcr.io -u USERNAME 
+make run-agent
 ```
+
+## Build add-on image and push
 
 ```shell
-export KO_DOCKER_REPO=ghcr.io/kubestellar/kubeflex
-ko build -B ./cmd/status-addon-operator -t 0.1.0 --platform linux/amd64,linux/arm64
+make ko-build-push
 ```
 
-Image is pushed to `ghcr.io/kubestellar/kubeflex/status-addon-operator:0.1.0`
-
-## Build and push manually helm chart
+## Restart add-on manager on hub
 
 ```shell
-make chart
-helm package ./chart --destination . --version 0.1.0
-helm push ./*.tgz oci://ghcr.io/kubestellar/kubeflex
+kubectl --context imbs1 -n open-cluster-management scale deployment addon-status-controller --replicas 0
+kubectl --context imbs1 -n open-cluster-management scale deployment addon-status-controller --replicas 1
 ```
 
-## Install the chart
+## Check workstatuses on hub
 
 ```shell
-helm upgrade --install status-addon -n <namespace> oci://ghcr.io/kubestellar/kubeflex/status-addon-operator-chart --version 0.1.0
+kubectl --context imbs1 get workstatuses -n cluster1 
+kubectl --context imbs1 get workstatuses -n cluster2
 ```
 
-## Build image and deploy status-addon on kind
+## Delete workstatuses from hub (for debugging agent)
 
 ```shell
-kubectl config use-context kind-kubeflex
-make docker-build
-kind load docker-image ghcr.io/kubestellar/kubeflex/status-addon-operator:0.1.0 --name kubeflex
-make deploy
+kubectl --context imbs1 delete workstatuses -n cluster1 --all
+kubectl --context imbs1 delete workstatuses -n cluster2 --all
 ```
 
-## Run addon agent for local testing
-
-This requires everything setup and imbs1 and cluster1 up and running
+## Restart agents
 
 ```shell
-make run-addon-agent
+kubectl --context cluster1 -n open-cluster-management-agent-addon scale deployment status-agent --replicas 0
+kubectl --context cluster1 -n open-cluster-management-agent-addon scale deployment status-agent --replicas 1
+kubectl --context cluster2 -n open-cluster-management-agent-addon scale deployment status-agent --replicas 0
+kubectl --context cluster2 -n open-cluster-management-agent-addon scale deployment status-agent --replicas 1
 ```
 
-## Hacks
 
-### Minify kubeconfig for a specified context
 
-```shell
-kubectl config view --minify --context=cp2 --flatten > ${HOME}/.ocm.kubeconfig
-```
-
-### Show all resources in a namespace
-
-```shell
-kubectl api-resources --verbs=list --namespaced -o name   | xargs -n 1 kubectl get --show-kind --ignore-not-found -n <namespace>
-```
 
 
