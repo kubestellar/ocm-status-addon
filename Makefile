@@ -124,9 +124,9 @@ test: manifests generate fmt vet envtest ## Run tests.
 run: manifests generate fmt vet ## Run addon agent on host
 	kubectl config view --minify --context=${DEFAULT_IMBS_CONTEXT} --flatten > /tmp/${DEFAULT_IMBS_CONTEXT}.kubeconfig
 	kubectl config view --minify --context=${DEFAULT_WEC1_CONTEXT} --flatten > /tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig
-	go run cmd/addon-agent/main.go agent --kubeconfig=/tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig \
+	go run cmd/status-addon/main.go agent --kubeconfig=/tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig \
 	--hub-kubeconfig=/tmp/${DEFAULT_IMBS_CONTEXT}.kubeconfig --cluster-name=${DEFAULT_WEC1_CONTEXT} \
-	--agent-name=status $(ARGS)
+	--addon-name=status $(ARGS)
 
 # If you wish built the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64 ). However, you must enable docker buildKit for it.

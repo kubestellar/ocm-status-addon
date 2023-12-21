@@ -4,9 +4,7 @@ import (
 	"context"
 	goflag "flag"
 	"fmt"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -24,11 +22,12 @@ import (
 	"open-cluster-management.io/addon-framework/pkg/utils"
 	"open-cluster-management.io/addon-framework/pkg/version"
 
+	"github.ibm.com/dettori/status-addon/pkg/add-on/agent"
 	"github.ibm.com/dettori/status-addon/pkg/add-on/hub"
 )
 
 func main() {
-	rand.Seed(time.Now().UTC().UnixNano())
+	//	rand.Seed(time.Now().UTC().UnixNano())
 
 	pflag.CommandLine.SetNormalizeFunc(utilflag.WordSepNormalizeFunc)
 	pflag.CommandLine.AddGoFlagSet(goflag.CommandLine)
@@ -61,7 +60,7 @@ func newCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(newControllerCommand())
-	cmd.AddCommand(newAgentCommand)
+	cmd.AddCommand(agent.NewAgentCommand("status"))
 
 	return cmd
 }

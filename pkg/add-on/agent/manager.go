@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package agent
 
 import (
+	"context"
 	"flag"
 	"os"
 
@@ -24,18 +25,19 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	"github.com/spf13/cobra"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
+	"k8s.io/component-base/version"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
+	cmdfactory "open-cluster-management.io/addon-framework/pkg/cmd/factory"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	v1alpha1 "github.ibm.com/dettori/status-addon/api/v1alpha1"
-
-	"github.ibm.com/dettori/status-addon/pkg/add-on/agent"
 )
 
 var (
@@ -55,14 +57,16 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
-var newAgentCommand = &cobra.Command{
-	Use:   "agent",
-	Short: "runs the addon agent",
-	Long:  `runs the addon agent`,
-	Args:  cobra.ExactArgs(0),
-	Run: func(cmd *cobra.Command, args []string) {
-		runAgent(NewAgentOptions("status"))
-	},
+func NewAgentCommand(addonName string) *cobra.Command {
+	o := NewAgentOptions(addonName)
+	cmd := cmdfactory.
+		NewControllerCommandConfig("status-addon-agent", version.Get(), o.RunAgent).
+		NewCommand()
+	cmd.Use = "agent"
+	cmd.Short = "Start the addon agent"
+
+	o.AddFlags(cmd)
+	return cmd
 }
 
 // AgentOptions defines the flags for workload agent
@@ -96,7 +100,7 @@ func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 			"Enabling this will ensure there is only one active controller manager.")
 }
 
-func runAgent(o *AgentOptions) {
+func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) error {
 	// var metricsAddr string
 	// var enableLeaderElection bool
 	// var probeAddr string
@@ -163,7 +167,7 @@ func runAgent(o *AgentOptions) {
 	}
 
 	// start the agent
-	agent, err := agent.NewAgent(mgr, managedConfig, hubConfig, o.SpokeClusterName, o.AddonName)
+	agent, err := NewAgent(mgr, managedConfig, hubConfig, o.SpokeClusterName, o.AddonName)
 	if err != nil {
 		setupLog.Error(err, "unable to create add-on agent", "controller", "agent")
 		os.Exit(1)
@@ -179,4 +183,5 @@ func runAgent(o *AgentOptions) {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+	return nil
 }
