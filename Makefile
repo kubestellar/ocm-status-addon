@@ -190,6 +190,12 @@ chart: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(shell echo ${IMG} | sed 's/\(:.*\)v/\1/')
 	$(KUSTOMIZE) build config/default > chart/templates/operator.yaml
 
+.PHONY: chart-push
+chart-push: chart ## push helm chart
+	helm package ./chart --destination . --version 0.1.0
+	helm push ./*.tgz oci://${KO_DOCKER_REPO}
+	rm ./*.tgz
+
 ##@ Build Dependencies
 
 ## Location to install dependencies to

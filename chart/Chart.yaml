@@ -1,5 +1,5 @@
 apiVersion: v2
-name: status-addon-operator-chart
+name: status-addon-chart
 description: Helm chart to install the status-addon operator
 type: application
 version: 0.1.0
