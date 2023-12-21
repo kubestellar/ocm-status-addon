@@ -24,8 +24,8 @@ func (a *Agent) startAppliedManifestWorkInformer(stopper chan struct{}) {
 	a.startInformer(gvr, gvk, stopper, false)
 }
 
-func (a *Agent) startInformers(gvrs []*schema.GroupVersionResource) {
-	for _, gvr := range gvrs {
+func (a *Agent) startInformers(gvrs []*schema.GroupVersionResource, uids []string) {
+	for i, gvr := range gvrs {
 
 		gvk, err := a.restMapper.KindFor(*gvr)
 		if err != nil {
@@ -39,9 +39,9 @@ func (a *Agent) startInformers(gvrs []*schema.GroupVersionResource) {
 		}
 
 		key := util.KeyForGroupVersionKind(gvk.Group, gvk.Version, gvk.Kind)
-		a.objectsCount.IncrementValueForKey(key)
+		a.objectsCount.AddUID(key, uids[i])
 
-		count := a.objectsCount.Get(key)
+		count := a.objectsCount.GetUIDCount(key)
 		if count == 1 {
 			a.logger.Info("starting informer", "key", key)
 			stopper := make(chan struct{})
@@ -97,8 +97,8 @@ func (a *Agent) startInformer(gvr schema.GroupVersionResource, gvk schema.GroupV
 	go informer.Run(stopper)
 }
 
-func (a *Agent) stopInformers(gvrs []*schema.GroupVersionResource) {
-	for _, gvr := range gvrs {
+func (a *Agent) stopInformers(appliedManifestInfo util.AppliedManifestInfo) {
+	for i, gvr := range appliedManifestInfo.GVRs {
 
 		gvk, err := a.restMapper.KindFor(*gvr)
 		if err != nil {
@@ -114,8 +114,8 @@ func (a *Agent) stopInformers(gvrs []*schema.GroupVersionResource) {
 			continue
 		}
 
-		a.objectsCount.DecrementValueForKey(key)
-		count := a.objectsCount.Get(key)
+		a.objectsCount.DeleteUID(key, appliedManifestInfo.ObjectUIDs[i])
+		count := a.objectsCount.GetUIDCount(key)
 		if count == 0 {
 			a.stopInformer(key)
 		}

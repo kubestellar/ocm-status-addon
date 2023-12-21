@@ -1,36 +1,45 @@
 package util
 
 import (
+	"strings"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-type SafeIntMap struct {
+type SafeUIDMap struct {
 	mu sync.Mutex
-	v  map[string]int
+	v  map[string]map[string]bool
 }
 
-func NewSafeIntMap() *SafeIntMap {
-	return &SafeIntMap{
-		v: make(map[string]int),
+func NewSafeUIDMap() *SafeUIDMap {
+	return &SafeUIDMap{
+		v: make(map[string]map[string]bool),
 	}
 }
 
-func (s *SafeIntMap) IncrementValueForKey(key string) {
+func (s *SafeUIDMap) AddUID(key, uid string) {
 	s.mu.Lock()
-	s.v[key]++
+	if k := s.v[key]; k == nil {
+		s.v[key] = make(map[string]bool)
+	}
+	s.v[key][uid] = true
 	s.mu.Unlock()
 }
 
-func (s *SafeIntMap) DecrementValueForKey(key string) {
+func (s *SafeUIDMap) DeleteUID(key, uid string) {
 	s.mu.Lock()
-	s.v[key]--
+	if k := s.v[key]; k != nil {
+		delete(s.v[key], uid)
+	}
 	s.mu.Unlock()
 }
 
-func (s *SafeIntMap) Get(key string) int {
-	return s.v[key]
+func (s *SafeUIDMap) GetUIDCount(key string) int {
+	if k := s.v[key]; k == nil {
+		return 0
+	}
+	return len(s.v[key])
 }
 
 //***********************************
@@ -67,4 +76,13 @@ func (s *SafeAppliedManifestMap) Delete(key string) {
 func (s *SafeAppliedManifestMap) Get(key string) (AppliedManifestInfo, bool) {
 	v, ok := s.v[key]
 	return v, ok
+}
+
+func HasPrefixInMap(m map[string]string, prefix string) bool {
+	for key := range m {
+		if strings.HasPrefix(key, prefix) {
+			return true
+		}
+	}
+	return false
 }

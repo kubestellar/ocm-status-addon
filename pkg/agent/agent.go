@@ -57,7 +57,7 @@ type Agent struct {
 	informers               map[string]*cache.SharedIndexInformer
 	trackedObjects          map[string]string
 	trackedAppliedManifests util.SafeAppliedManifestMap
-	objectsCount            util.SafeIntMap
+	objectsCount            util.SafeUIDMap
 	stoppers                map[string]chan struct{}
 	workqueue               workqueue.RateLimitingInterface
 	initializedTs           time.Time
@@ -105,7 +105,7 @@ func NewAgent(mgr ctrlm.Manager, managedRestConfig *rest.Config, hubRestConfig *
 		listers:                 make(map[string]*cache.GenericLister),
 		informers:               make(map[string]*cache.SharedIndexInformer),
 		trackedAppliedManifests: *util.NewSafeAppliedManifestMap(),
-		objectsCount:            *util.NewSafeIntMap(),
+		objectsCount:            *util.NewSafeUIDMap(),
 		stoppers:                make(map[string]chan struct{}),
 		trackedObjects:          make(map[string]string),
 		workqueue:               workqueue.NewRateLimitingQueue(ratelimiter),

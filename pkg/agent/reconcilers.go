@@ -18,6 +18,10 @@ import (
 	"github.ibm.com/dettori/status-addon/pkg/util"
 )
 
+const (
+	ManagedByPlacementPrefix = "managed-by.kubestellar.io"
+)
+
 // main reconciliation loop. The returned bool value allows to re-enque even if no errors
 func (a *Agent) reconcile(ctx context.Context, key util.Key) (bool, error) {
 	var obj runtime.Object
@@ -92,14 +96,14 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 			GVRs:       gvrs,
 		}
 		a.trackedAppliedManifests.Set(mObj.GetName(), info)
-		go a.startInformers(gvrs)
+		go a.startInformers(gvrs, uids)
 	} else {
 		appliedManifestWorkInfo, ok := a.trackedAppliedManifests.Get(mObj.GetName())
 		if !ok {
 			a.logger.Info("could not find appliedManifestWorkInfo", "key", mObj.GetName())
 		}
 		ocm.RemoveTrackedObjectsUID(appliedManifestWorkInfo.ObjectUIDs, a.trackedObjects)
-		a.stopInformers(appliedManifestWorkInfo.GVRs)
+		a.stopInformers(appliedManifestWorkInfo)
 		a.trackedAppliedManifests.Delete(mObj.GetName())
 	}
 
@@ -133,9 +137,20 @@ func (a *Agent) updateWorkStatus(obj runtime.Object) error {
 				return fmt.Errorf("failed to get manifestWork: %w", err)
 			}
 
+			// only update status for KS placement-managed objects
+			if !util.HasPrefixInMap(manifestWork.Labels, ManagedByPlacementPrefix) {
+				a.logger.Info("object not managed by a KS placement, status not updated", "object", name, "namespace", namespace)
+				return nil
+			}
+
 			if err := controllerutil.SetControllerReference(manifestWork, workStatus, a.hubClient.Scheme()); err != nil {
 				return fmt.Errorf("failed to set controller reference: %w", err)
 			}
+
+			// copy labels from manifest work to workstatus - this will be useful for tracking source placement
+			// TODO - need to do this also when labels are updated on manifest work
+			// TODO - there are currently no labels on workstatus but should consider merging in case labels are set
+			workStatus.Labels = manifestWork.Labels
 
 			if err = a.hubClient.Create(ctx, workStatus, &client.CreateOptions{}); err != nil {
 				return fmt.Errorf("failed to create workStatus: %w", err)
