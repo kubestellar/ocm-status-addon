@@ -58,7 +58,6 @@ spec:
         {{- end }}
 {{- end }}
         args:
-          ##- "/status"
           - "agent"
           - "--hub-kubeconfig=/var/run/hub/kubeconfig"
           - "--cluster-name={{ .ClusterName }}"

@@ -13,17 +13,20 @@
 # limitations under the License.
 
 # Image URL to use all building/pushing image targets
-IMG ?= ghcr.io/kubestellar/kubeflex/status-addon-operator:0.1.0
+KO_DOCKER_REPO ?= quay.io/pdettori
+IMAGE_TAG ?= 0.1.0
+CMD_NAME ?= status-addon
+IMG ?= ${KO_DOCKER_REPO}/${CMD_NAME}:${IMAGE_TAG}
+export STATUS_ADDDON_IMAGE_NAME ?= ${IMG}
+
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.26.1
 # Default Namespace to use for make deploy (mainly for local testing)
 DEFAULT_NAMESPACE=default
-# Default WDS name to use for make deploy (mainly for local testing) 
-DEFAULT_WDS_NAME=wds1
 # Default IMBS context for testing
-DEFAULT_IMBS_CONTEXT=imbs1
+DEFAULT_IMBS_CONTEXT ?= imbs1
 # Default WEC1 for testing
-DEFAULT_WEC1_CONTEXT=cluster1
+DEFAULT_WEC1_CONTEXT ?= cluster1
 
 
 # We need bash for some conditional logic below.
@@ -120,24 +123,26 @@ test: manifests generate fmt vet envtest ## Run tests.
 
 
 
-.PHONY: run
-run: manifests generate fmt vet ## Run addon agent on host
+.PHONY: run-agent
+run-agent: manifests generate fmt vet ## Run addon agent on host
 	kubectl config view --minify --context=${DEFAULT_IMBS_CONTEXT} --flatten > /tmp/${DEFAULT_IMBS_CONTEXT}.kubeconfig
 	kubectl config view --minify --context=${DEFAULT_WEC1_CONTEXT} --flatten > /tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig
 	go run cmd/status-addon/main.go agent --kubeconfig=/tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig \
 	--hub-kubeconfig=/tmp/${DEFAULT_IMBS_CONTEXT}.kubeconfig --cluster-name=${DEFAULT_WEC1_CONTEXT} \
 	--addon-name=status $(ARGS)
 
-# If you wish built the manager image targeting other platforms you can use the --platform flag.
-# (i.e. docker build --platform linux/arm64 ). However, you must enable docker buildKit for it.
-# More info: https://docs.docker.com/develop/develop-images/build_enhancements/
-.PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+.PHONY: ko-build
+ko-build: test ## Build docker image with ko
+	KO_DOCKER_REPO=ko.local ko build --push=false -B ./cmd/${CMD_NAME} -t ${IMAGE_TAG} --platform linux/amd64,linux/arm64
+	docker tag ko.local/${CMD_NAME}:${IMAGE_TAG} ${IMG}
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
+
+.PHONY: ko-build-push
+ko-build-push: test ## Build and push docker image with ko
+	KO_DOCKER_REPO=${KO_DOCKER_REPO} ko build -B ./cmd/${CMD_NAME} -t ${IMAGE_TAG} --platform linux/amd64,linux/arm64
 
 # PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -164,26 +169,25 @@ endif
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+	$(KUSTOMIZE) build config/crd | kubectl --context ${DEFAULT_IMBS_CONTEXT} apply -f -
 
 .PHONY: uninstall
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+	$(KUSTOMIZE) build config/crd | kubectl --context ${DEFAULT_IMBS_CONTEXT} delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy manager to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | sed -e 's/{{.Release.Namespace}}/${DEFAULT_NAMESPACE}/g' -e 's/{{.Values.ControlPlaneName}}/${DEFAULT_WDS_NAME}/g' | kubectl apply -f -
+	$(KUSTOMIZE) build config/default | kubectl --context ${DEFAULT_IMBS_CONTEXT} apply -f -
 
 .PHONY: undeploy
 undeploy: ## Undeploy manager from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+	$(KUSTOMIZE) build config/default | kubectl --context ${DEFAULT_IMBS_CONTEXT} delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: chart
 chart: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(shell echo ${IMG} | sed 's/\(:.*\)v/\1/')
 	$(KUSTOMIZE) build config/default > chart/templates/operator.yaml
-	scripts/add-helm-code.sh add
 
 ##@ Build Dependencies
 

@@ -1,4 +1,4 @@
-package hub
+package controller
 
 import (
 	"embed"
@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	DefaultHelloWorldExampleImage = "quay.io/open-cluster-management/addon-examples:latest"
-	AddonName                     = "status"
-	InstallationNamespace         = "default"
+	DefaultStatusAddOnImage = "quay.io/pdettori/status-addon:0.1.0"
+	AddonName               = "addon-status"
+	InstallationNamespace   = "open-cluster-management-agent-addon"
 )
 
 //go:embed manifests
@@ -41,9 +41,9 @@ func GetDefaultValues(cluster *clusterv1.ManagedCluster,
 		installNamespace = InstallationNamespace
 	}
 
-	image := os.Getenv("EXAMPLE_IMAGE_NAME")
+	image := os.Getenv("STATUS_ADDDON_IMAGE_NAME")
 	if len(image) == 0 {
-		image = DefaultHelloWorldExampleImage
+		image = DefaultStatusAddOnImage
 	}
 
 	manifestConfig := struct {

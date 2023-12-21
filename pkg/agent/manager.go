@@ -101,21 +101,6 @@ func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 }
 
 func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) error {
-	// var metricsAddr string
-	// var enableLeaderElection bool
-	// var probeAddr string
-	// var hubKubeconfig string
-	// var clusterName string
-	// var agentName string
-	// flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	// flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	// flag.StringVar(&hubKubeconfig, "hub-kubeconfig", "", "kubeconfig for the hub cluster")
-	// flag.StringVar(&clusterName, "cluster-name", "", "name of the cluster registered on the hub")
-	// flag.StringVar(&agentName, "agent-name", "", "name of the add-on agent")
-	// flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-	// 	"Enable leader election for controller manager. "+
-	// 		"Enabling this will ensure there is only one active controller manager.")
-
 	opts := zap.Options{
 		Development: true,
 	}

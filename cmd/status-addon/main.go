@@ -22,13 +22,11 @@ import (
 	"open-cluster-management.io/addon-framework/pkg/utils"
 	"open-cluster-management.io/addon-framework/pkg/version"
 
-	"github.ibm.com/dettori/status-addon/pkg/add-on/agent"
-	"github.ibm.com/dettori/status-addon/pkg/add-on/hub"
+	"github.ibm.com/dettori/status-addon/pkg/agent"
+	"github.ibm.com/dettori/status-addon/pkg/controller"
 )
 
 func main() {
-	//	rand.Seed(time.Now().UTC().UnixNano())
-
 	pflag.CommandLine.SetNormalizeFunc(utilflag.WordSepNormalizeFunc)
 	pflag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 
@@ -86,9 +84,9 @@ func runController(ctx context.Context, kubeConfig *rest.Config) error {
 		return err
 	}
 
-	registrationOption := hub.NewRegistrationOption(
+	registrationOption := controller.NewRegistrationOption(
 		kubeConfig,
-		hub.AddonName,
+		controller.AddonName,
 		utilrand.String(5),
 	)
 
@@ -97,19 +95,19 @@ func runController(ctx context.Context, kubeConfig *rest.Config) error {
 		utils.NewAddOnDeploymentConfigGetter(addonClient),
 	)
 
-	agentAddon, err := addonfactory.NewAgentAddonFactory(hub.AddonName, hub.FS, "manifests/templates").
+	agentAddon, err := addonfactory.NewAgentAddonFactory(controller.AddonName, controller.FS, "manifests/templates").
 		WithConfigGVRs(utils.AddOnDeploymentConfigGVR).
 		WithGetValuesFuncs(
-			hub.GetDefaultValues,
+			controller.GetDefaultValues,
 			addonfactory.GetAddOnDeploymentConfigValues(
 				utils.NewAddOnDeploymentConfigGetter(addonClient),
 				addonfactory.ToAddOnDeploymentConfigValues,
-				addonfactory.ToImageOverrideValuesFunc("Image", hub.DefaultHelloWorldExampleImage),
+				addonfactory.ToImageOverrideValuesFunc("Image", controller.DefaultStatusAddOnImage),
 			),
 		).
 		WithAgentRegistrationOption(registrationOption).
-		WithInstallStrategy(addonagent.InstallAllStrategy(hub.InstallationNamespace)).
-		WithAgentHealthProber(hub.AgentHealthProber()).
+		WithInstallStrategy(addonagent.InstallAllStrategy(controller.InstallationNamespace)).
+		WithAgentHealthProber(controller.AgentHealthProber()).
 		BuildTemplateAgentAddon()
 	if err != nil {
 		klog.Errorf("failed to build agent %v", err)

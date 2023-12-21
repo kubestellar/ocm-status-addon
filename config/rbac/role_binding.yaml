@@ -15,6 +15,6 @@ roleRef:
   name: manager-role
 subjects:
 - kind: ServiceAccount
-  name: status-addon-controller-manager
-  namespace: "{{.Release.Namespace}}"
+  name: status-sa
+  namespace: open-cluster-management
 

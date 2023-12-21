@@ -1,7 +1,7 @@
-apiVersion: apps/v1
 kind: Deployment
+apiVersion: apps/v1
 metadata:
-  name: controller-manager
+  name: status-controller
   labels:
     control-plane: controller-manager
     app.kubernetes.io/name: deployment
@@ -10,49 +10,39 @@ metadata:
     app.kubernetes.io/created-by: status-addon
     app.kubernetes.io/part-of: status-addon
     app.kubernetes.io/managed-by: kustomize
+    app: status-controller
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      control-plane: controller-manager
-  replicas: 1
+      app: status-controller
   template:
     metadata:
-      annotations:
-        kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: controller-manager
+        app: status-controller
     spec:
       securityContext:
         runAsNonRoot: true
+      serviceAccountName: status-sa
       containers:
-      - args:
-        - --leader-elect
-        image: controller:latest
-        imagePullPolicy: IfNotPresent
-        name: manager
+      - name: status-controller
+        image: controller
+        imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
               - "ALL"
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
         resources:
           limits:
             cpu: 500m
             memory: 512Mi
           requests:
             cpu: 10m
-            memory: 64Mi
-      serviceAccountName: controller-manager
-      terminationGracePeriodSeconds: 10
+            memory: 64Mi      
+        env:
+        - name: STATUS_ADDDON_IMAGE_NAME
+          value: STATUS_ADDDON_IMAGE_NAME_PLACEHOLDER
+        args:
+        - "controller"
+
