@@ -58,7 +58,7 @@ func (a *Agent) reconcile(ctx context.Context, key util.Key) (bool, error) {
 
 	a.logger.Info("going to update status:", "object", util.GenerateObjectInfoString(obj))
 	if err := a.updateWorkStatus(obj); err != nil {
-		return false, nil
+		return false, err
 	}
 
 	return false, nil

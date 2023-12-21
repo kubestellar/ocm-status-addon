@@ -125,6 +125,7 @@ test: manifests generate fmt vet envtest ## Run tests.
 
 .PHONY: run-agent
 run-agent: manifests generate fmt vet ## Run addon agent on host
+	kubectl config use-context ${DEFAULT_WEC1_CONTEXT}
 	kubectl config view --minify --context=${DEFAULT_IMBS_CONTEXT} --flatten > /tmp/${DEFAULT_IMBS_CONTEXT}.kubeconfig
 	kubectl config view --minify --context=${DEFAULT_WEC1_CONTEXT} --flatten > /tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig
 	go run cmd/status-addon/main.go agent --kubeconfig=/tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig \

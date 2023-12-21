@@ -6,13 +6,14 @@ import (
 	"os"
 
 	"k8s.io/client-go/rest"
-	"open-cluster-management.io/addon-framework/examples/rbac"
 	"open-cluster-management.io/addon-framework/pkg/addonfactory"
 	"open-cluster-management.io/addon-framework/pkg/agent"
 	"open-cluster-management.io/addon-framework/pkg/utils"
 	addonapiv1alpha1 "open-cluster-management.io/api/addon/v1alpha1"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	workapiv1 "open-cluster-management.io/api/work/v1"
+
+	"github.ibm.com/dettori/status-addon/pkg/rbac"
 )
 
 const (

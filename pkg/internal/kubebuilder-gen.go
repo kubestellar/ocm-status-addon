@@ -26,8 +26,8 @@ import (
 type NoOpReconciler struct {
 }
 
-//+kubebuilder:rbac:groups=tenancy.kflex.kubestellar.org,resources=workstatuses,verbs=get;list;watch
-//+kubebuilder:rbac:groups=tenancy.kflex.kubestellar.org,resources=workstatuses/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=edge.kubestellar.io,resources=workstatuses,verbs=get;list;watch;create;update
+//+kubebuilder:rbac:groups=edge.kubestellar.io,resources=workstatuses/status,verbs=update;patch
 //+kubebuilder:rbac:groups="",resources=configmaps;events,verbs=get;list;watch;create;update;delete;deletecollection;patch
 //+kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;list;watch;create;update;patch
 //+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;watch;create;update;delete

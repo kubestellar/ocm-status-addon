@@ -109,6 +109,23 @@ rules:
   - update
   - watch
 - apiGroups:
+  - edge.kubestellar.io
+  resources:
+  - workstatuses
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - edge.kubestellar.io
+  resources:
+  - workstatuses/status
+  verbs:
+  - patch
+  - update
+- apiGroups:
   - rbac.authorization.k8s.io
   resources:
   - rolebindings
@@ -127,22 +144,6 @@ rules:
   verbs:
   - create
   - get
-- apiGroups:
-  - tenancy.kflex.kubestellar.org
-  resources:
-  - workstatuses
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - tenancy.kflex.kubestellar.org
-  resources:
-  - workstatuses/status
-  verbs:
-  - get
-  - patch
-  - update
 - apiGroups:
   - work.open-cluster-management.io
   resources:
