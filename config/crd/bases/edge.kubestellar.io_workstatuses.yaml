@@ -42,6 +42,8 @@ spec:
                 properties:
                   group:
                     type: string
+                  kind:
+                    type: string
                   name:
                     type: string
                   namespace:

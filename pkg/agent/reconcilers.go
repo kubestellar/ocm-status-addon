@@ -168,6 +168,7 @@ func (a *Agent) updateWorkStatus(obj runtime.Object) error {
 				Group:     gvr.Group,
 				Version:   gvr.Version,
 				Resource:  gvr.Resource,
+				Kind:      gvk.Kind,
 				Name:      mObj.GetName(),
 				Namespace: mObj.GetNamespace(),
 			}

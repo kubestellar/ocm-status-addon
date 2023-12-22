@@ -57,6 +57,7 @@ type SourceRef struct {
 	Group     string `json:"group,omitempty"`
 	Version   string `json:"version,omitempty"`
 	Resource  string `json:"resource,omitempty"`
+	Kind      string `json:"kind,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Namespace string `json:"namespace,omitempty"`
 }
