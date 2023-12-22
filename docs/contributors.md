@@ -81,9 +81,25 @@ If installed with `make deploy`
 make undeploy
 ```
 
+## Stop deployed agent on cluster1 (for local testing)
 
+```shell
+kubectl --context imbs1 -n open-cluster-management scale deployment addon-status-controller --replicas 0
+```
 
+Then change the number of replicas to 0 in the manifestwork for the addon by opening an editor.
 
+```shell
+kubectl --context imbs1 -n cluster1 edit manifestwork addon-addon-status-deploy-0 
+```
+and set spec.workload.manifests[0].spec.replicas = 0
+
+Verify that the status agent was stopped:
+
+```shell
+kubectl --context cluster1 -n open-cluster-management-agent-addon get deployments.apps status-agent 
+```
+now you can start for local testing with `make run-agent`
 
 
 

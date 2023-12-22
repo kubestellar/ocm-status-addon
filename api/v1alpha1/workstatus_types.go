@@ -29,7 +29,13 @@ type WorkStatus struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Status RawStatus `json:"status,omitempty"`
+	Spec   WorkStatusSpec `json:"spec,omitempty"`
+	Status RawStatus      `json:"status,omitempty"`
+}
+
+// Workstatus spec
+type WorkStatusSpec struct {
+	SourceRef SourceRef `json:"sourceRef,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -45,6 +51,14 @@ type RawStatus struct {
 	// +kubebuilder:validation:EmbeddedResource
 	// +kubebuilder:pruning:PreserveUnknownFields
 	runtime.RawExtension `json:",inline"`
+}
+
+type SourceRef struct {
+	Group     string `json:"group,omitempty"`
+	Version   string `json:"version,omitempty"`
+	Resource  string `json:"resource,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
 }
 
 func init() {

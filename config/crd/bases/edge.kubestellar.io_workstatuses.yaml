@@ -35,6 +35,23 @@ spec:
             type: string
           metadata:
             type: object
+          spec:
+            description: Workstatus spec
+            properties:
+              sourceRef:
+                properties:
+                  group:
+                    type: string
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                  resource:
+                    type: string
+                  version:
+                    type: string
+                type: object
+            type: object
           status:
             description: Manifest represents a resource to be deployed
             type: object

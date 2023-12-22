@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -160,4 +161,13 @@ func ConvertRuntimeObjectToUnstructured(obj runtime.Object) (*unstructured.Unstr
 	return &unstructured.Unstructured{
 		Object: unstructuredMap,
 	}, nil
+}
+
+func GetGVR(mapper meta.RESTMapper, gvk schema.GroupVersionKind) (schema.GroupVersionResource, error) {
+	mapping, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return schema.GroupVersionResource{}, fmt.Errorf("could not get REST mapping for GVK %v: %w", gvk, err)
+	}
+
+	return mapping.Resource, nil
 }

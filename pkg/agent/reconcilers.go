@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -151,6 +152,25 @@ func (a *Agent) updateWorkStatus(obj runtime.Object) error {
 			// TODO - need to do this also when labels are updated on manifest work
 			// TODO - there are currently no labels on workstatus but should consider merging in case labels are set
 			workStatus.Labels = manifestWork.Labels
+
+			// set object ref
+			gvk := schema.GroupVersionKind{
+				Group:   obj.GetObjectKind().GroupVersionKind().Group,
+				Version: obj.GetObjectKind().GroupVersionKind().Version,
+				Kind:    obj.GetObjectKind().GroupVersionKind().Kind}
+
+			// TODO - restMapper may not be updated for new APIs - need to do that or use different approach
+			gvr, err := util.GetGVR(a.restMapper, gvk)
+			if err != nil {
+				return fmt.Errorf("could not get gvr from restmapper for object: %s", err)
+			}
+			workStatus.Spec.SourceRef = v1alpha1.SourceRef{
+				Group:     gvr.Group,
+				Version:   gvr.Version,
+				Resource:  gvr.Resource,
+				Name:      mObj.GetName(),
+				Namespace: mObj.GetNamespace(),
+			}
 
 			if err = a.hubClient.Create(ctx, workStatus, &client.CreateOptions{}); err != nil {
 				return fmt.Errorf("failed to create workStatus: %w", err)
