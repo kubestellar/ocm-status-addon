@@ -54,12 +54,12 @@ type RawStatus struct {
 }
 
 type SourceRef struct {
-	Group     string `json:"group,omitempty"`
+	Group     string `json:"group"`
 	Version   string `json:"version,omitempty"`
 	Resource  string `json:"resource,omitempty"`
 	Kind      string `json:"kind,omitempty"`
 	Name      string `json:"name,omitempty"`
-	Namespace string `json:"namespace,omitempty"`
+	Namespace string `json:"namespace"`
 }
 
 func init() {
