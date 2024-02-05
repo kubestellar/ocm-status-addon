@@ -25,10 +25,10 @@ and RBAC permissions to enable this functionality.
 
 1. Clone this repo.
 
-2. Setup KubeStellar as described in [setup](https://github.ibm.com/dettori/kslight#setup), then install
+2. Setup KubeStellar as described in [setup](https://github.com/kubestellar/kubestellar/blob/main/docs/content/v0.20/examples.md#common-setup), then install
    status add-on with helm:
     ```shell
-    helm --kube-context imbs1 upgrade --install status-addon -n open-cluster-management oci://quay.io/pdettori/status-addon-chart --version 0.1.0
+    helm --kube-context imbs1 upgrade --install ocm-status-addon -n open-cluster-management oci://ghcr.io/kubestellar/ocm-status-addon-chart --version 0.2.0-alpha.1
     ```
 3. Check status of agent deployments
     ```shell
@@ -39,7 +39,7 @@ and RBAC permissions to enable this functionality.
 
 ## Using the Add-On
 
-1. Deploy a workload with KubeStellar, for example following [Scenario 1](https://github.com/kubestellar/kubestellar/blob/main/docs/content/v0.20/examples.md#scenario-1---multi-cluster-workload-deployment-with-kubectl)
+1. Deploy a workload with KubeStellar, for example following [Scenario 4](https://github.com/kubestellar/kubestellar/blob/main/docs/content/v0.20/examples.md#scenario-4---singleton-status)
 
 2. Verify that `WorkStatus` objects are created in `imbs1` managed clusters namespaces 
     ```shell
@@ -58,5 +58,5 @@ and RBAC permissions to enable this functionality.
 To uninstall the status add-on, use the following helm command:
 
 ```shell
-helm --kube-context imbs1 -n open-cluster-management delete status-addon
+helm --kube-context imbs1 -n open-cluster-management delete ocm-status-addon
 ```
