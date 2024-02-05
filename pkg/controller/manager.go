@@ -13,7 +13,7 @@ import (
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	workapiv1 "open-cluster-management.io/api/work/v1"
 
-	"github.ibm.com/dettori/status-addon/pkg/rbac"
+	"github.com/kubestellar/ocm-status-addon/pkg/rbac"
 )
 
 const (

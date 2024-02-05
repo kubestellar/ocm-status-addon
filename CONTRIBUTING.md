@@ -60,10 +60,10 @@ If you have any questions about contributing, don't hesitate to reach out to us 
 
 ## Testing Locally
 
-Needs updates for KubeFlex
+Needs updates for ocm-status-addon
 
 ## Licensing
-KubeFlex is [Apache 2.0 licensed](LICENSE) and we accept contributions via
+ocm-status-addon is [Apache 2.0 licensed](LICENSE) and we accept contributions via
 GitHub pull requests.
 
 Please read the following guide if you're interested in contributing to KubeStellar.

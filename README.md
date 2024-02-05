@@ -1,12 +1,16 @@
 # Status-AddOn
 
-Agent and Controller built with the Open Cluster Management Add-On Framework
+Agent and Controller built with the Open Cluster Management 
+[Add-On Framework](https://open-cluster-management.io/concepts/addon/)
 to provide deep status for selected resources.
 
 # TL;DR
 
-TODO
-
+The OCM status addon consists of a controller and an agent. The controller 
+is responsible for installing the agent addon on all clusters. The agent is responsible
+for monitoring the objects delivered by the OCM work agent, and report their statuses 
+back to the OCM Hub using WorkStatus objects. The addon uses the OCM Add-on Framework 
+and RBAC permissions to enable this functionality.
 
 ## Prereqs
 
@@ -21,7 +25,7 @@ TODO
 
 1. Clone this repo.
 
-2. Setup KSLight as described in [setup](https://github.ibm.com/dettori/kslight#setup), then install
+2. Setup KubeStellar as described in [setup](https://github.ibm.com/dettori/kslight#setup), then install
    status add-on with helm:
     ```shell
     helm --kube-context imbs1 upgrade --install status-addon -n open-cluster-management oci://quay.io/pdettori/status-addon-chart --version 0.1.0

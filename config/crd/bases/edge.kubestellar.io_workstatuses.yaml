@@ -52,6 +52,9 @@ spec:
                     type: string
                   version:
                     type: string
+                required:
+                - group
+                - namespace
                 type: object
             type: object
           status:

@@ -1,4 +1,4 @@
-module github.ibm.com/dettori/status-addon
+module github.com/kubestellar/ocm-status-addon
 
 go 1.20
 

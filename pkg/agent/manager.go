@@ -37,7 +37,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	v1alpha1 "github.ibm.com/dettori/status-addon/api/v1alpha1"
+	v1alpha1 "github.com/kubestellar/ocm-status-addon/api/v1alpha1"
 )
 
 var (

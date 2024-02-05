@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
-	"github.ibm.com/dettori/status-addon/api/v1alpha1"
+	"github.com/kubestellar/ocm-status-addon/api/v1alpha1"
 )
 
 // creates a new controller-runtime client with the default

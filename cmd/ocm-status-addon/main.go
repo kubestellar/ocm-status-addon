@@ -22,8 +22,8 @@ import (
 	"open-cluster-management.io/addon-framework/pkg/utils"
 	"open-cluster-management.io/addon-framework/pkg/version"
 
-	"github.ibm.com/dettori/status-addon/pkg/agent"
-	"github.ibm.com/dettori/status-addon/pkg/controller"
+	"github.com/kubestellar/ocm-status-addon/pkg/agent"
+	"github.com/kubestellar/ocm-status-addon/pkg/controller"
 )
 
 func main() {

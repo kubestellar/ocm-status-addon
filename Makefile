@@ -13,9 +13,9 @@
 # limitations under the License.
 
 # Image URL to use all building/pushing image targets
-KO_DOCKER_REPO ?= quay.io/pdettori
-IMAGE_TAG ?= 0.1.0
-CMD_NAME ?= status-addon
+KO_DOCKER_REPO ?= ghcr.io/kubestellar
+IMAGE_TAG ?= 0.2.0-alpha.1
+CMD_NAME ?= ocm-status-addon
 IMG ?= ${KO_DOCKER_REPO}/${CMD_NAME}:${IMAGE_TAG}
 export STATUS_ADDDON_IMAGE_NAME ?= ${IMG}
 
@@ -128,12 +128,12 @@ run-agent: manifests generate fmt vet ## Run addon agent on host
 	kubectl config use-context ${DEFAULT_WEC1_CONTEXT}
 	kubectl config view --minify --context=${DEFAULT_IMBS_CONTEXT} --flatten > /tmp/${DEFAULT_IMBS_CONTEXT}.kubeconfig
 	kubectl config view --minify --context=${DEFAULT_WEC1_CONTEXT} --flatten > /tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig
-	go run cmd/status-addon/main.go agent --kubeconfig=/tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig \
+	go run cmd/ocm-status-addon/main.go agent --kubeconfig=/tmp/${DEFAULT_WEC1_CONTEXT}.kubeconfig \
 	--hub-kubeconfig=/tmp/${DEFAULT_IMBS_CONTEXT}.kubeconfig --cluster-name=${DEFAULT_WEC1_CONTEXT} \
 	--addon-name=status $(ARGS)
 
-.PHONY: ko-build
-ko-build: test ## Build docker image with ko
+.PHONY: ko-local-build
+ko-local-build: test ## Build docker image with ko
 	KO_DOCKER_REPO=ko.local ko build --push=false -B ./cmd/${CMD_NAME} -t ${IMAGE_TAG} --platform linux/amd64,linux/arm64
 	docker tag ko.local/${CMD_NAME}:${IMAGE_TAG} ${IMG}
 
@@ -192,7 +192,7 @@ chart: manifests kustomize
 
 .PHONY: chart-push
 chart-push: chart ## push helm chart
-	helm package ./chart --destination . --version 0.1.0
+	helm package ./chart --destination . --version ${IMAGE_TAG} --app-version ${IMAGE_TAG}
 	helm push ./*.tgz oci://${KO_DOCKER_REPO}
 	rm ./*.tgz
 

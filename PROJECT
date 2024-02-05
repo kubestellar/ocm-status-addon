@@ -6,7 +6,7 @@ domain: github.com/kubestellar
 layout:
 - go.kubebuilder.io/v4
 projectName: status-addon
-repo: github.ibm.com/dettori/status-addon
+repo: github.com/kubestellar/ocm-status-addon
 resources:
 - api:
     crdVersion: v1
@@ -15,6 +15,6 @@ resources:
   domain: github.com/kubestellar
   group: tenancy
   kind: Placement
-  path: github.ibm.com/dettori/status-addon/api/v1alpha1
+  path: github.com/kubestellar/ocm-status-addon/api/v1alpha1
   version: v1alpha1
 version: "3"

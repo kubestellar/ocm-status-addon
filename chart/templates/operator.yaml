@@ -51,6 +51,9 @@ spec:
                     type: string
                   version:
                     type: string
+                required:
+                - group
+                - namespace
                 type: object
             type: object
           status:
@@ -285,8 +288,8 @@ spec:
         - controller
         env:
         - name: STATUS_ADDDON_IMAGE_NAME
-          value: quay.io/pdettori/status-addon:0.1.0
-        image: quay.io/pdettori/status-addon:0.1.0
+          value: ghcr.io/kubestellar/ocm-status-addon:0.2.0-alpha.1
+        image: ghcr.io/kubestellar/ocm-status-addon:0.2.0-alpha.1
         imagePullPolicy: Always
         name: status-controller
         resources:

@@ -24,8 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlm "sigs.k8s.io/controller-runtime/pkg/manager"
 
-	"github.ibm.com/dettori/status-addon/pkg/ocm"
-	"github.ibm.com/dettori/status-addon/pkg/util"
+	"github.com/kubestellar/ocm-status-addon/pkg/ocm"
+	"github.com/kubestellar/ocm-status-addon/pkg/util"
 )
 
 // generally all resources not creating a status should be excluded

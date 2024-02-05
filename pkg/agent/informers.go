@@ -7,7 +7,7 @@ import (
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/tools/cache"
 
-	"github.ibm.com/dettori/status-addon/pkg/util"
+	"github.com/kubestellar/ocm-status-addon/pkg/util"
 )
 
 func (a *Agent) startAppliedManifestWorkInformer(stopper chan struct{}) {

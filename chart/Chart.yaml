@@ -1,6 +1,6 @@
 apiVersion: v2
-name: status-addon-chart
+name: ocm-status-addon-chart
 description: Helm chart to install the status-addon operator
 type: application
-version: 0.1.0
-appVersion: 0.1.0
+version: 0.2.0
+appVersion: 0.2.0

@@ -14,9 +14,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.ibm.com/dettori/status-addon/api/v1alpha1"
-	"github.ibm.com/dettori/status-addon/pkg/ocm"
-	"github.ibm.com/dettori/status-addon/pkg/util"
+	"github.com/kubestellar/ocm-status-addon/api/v1alpha1"
+	"github.com/kubestellar/ocm-status-addon/pkg/ocm"
+	"github.com/kubestellar/ocm-status-addon/pkg/util"
 )
 
 const (
