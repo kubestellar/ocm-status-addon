@@ -39,7 +39,7 @@ and RBAC permissions to enable this functionality.
 
 ## Using the Add-On
 
-1. Deploy a workload with KSLight, for example following [Scenario 1](https://github.ibm.com/dettori/kslight#scenario-1---multi-cluster-workload-deployment-with-kubectl)
+1. Deploy a workload with KubeStellar, for example following [Scenario 1](https://github.com/kubestellar/kubestellar/blob/main/docs/content/v0.20/examples.md#scenario-1---multi-cluster-workload-deployment-with-kubectl)
 
 2. Verify that `WorkStatus` objects are created in `imbs1` managed clusters namespaces 
     ```shell
