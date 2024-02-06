@@ -122,7 +122,7 @@ func (a *Agent) updateWorkStatus(obj runtime.Object) error {
 	// check if WorkStatus exists and if not create it
 	workStatus := &v1alpha1.WorkStatus{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      util.BuildWorkstatusName(obj),
 			Namespace: namespace,
 		},
 	}
