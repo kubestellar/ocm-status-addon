@@ -21,7 +21,7 @@ make chart-push
 ## Install chart from OCI repo
 
 ```shell
-helm --kube-context imbs1 upgrade --install status-addon -n open-cluster-management oci://quay.io/pdettori/status-addon-chart --version 0.1.0
+helm --kube-context imbs1 upgrade --install status-addon -n open-cluster-management oci://ghcr.io/kubestellar/ocm-status-addon-chart --version 0.2.0-alpha.1
 ```
 
 ## Install chart from local repo
