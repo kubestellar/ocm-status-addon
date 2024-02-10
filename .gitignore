@@ -20,5 +20,3 @@ bin
 dist/
 *.tgz
 .DS_Store
-
-kustomization.yaml
