@@ -1,0 +1,8 @@
+resources:
+# All RBAC will be applied under this service account in
+# the deployment namespace.
+- service_account.yaml
+- role.yaml
+- role_binding.yaml
+
+
