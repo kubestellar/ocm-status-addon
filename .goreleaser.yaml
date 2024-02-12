@@ -1,7 +1,7 @@
 kos:           
   - repository: ghcr.io/kubestellar/ocm-status-addon
     main: ./cmd/ocm-status-addon
-    build: manager
+#    build: manager
     tags:
     - '{{.Version}}'
     - latest

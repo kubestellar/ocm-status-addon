@@ -101,6 +101,28 @@ kubectl --context cluster1 -n open-cluster-management-agent-addon get deployment
 ```
 now you can start for local testing with `make run-agent`
 
+## Steps to make release
+
+1. Checkout main and fetch from upstream
+2. git checkout <release branch> # e.g. release-0.2
+3. Rebase from main
+4. Push the release branch with "git push" - open PR and review/merge to update release branch upstream.
+
+5. check existing tags e.g.,
+```
+git tag 
+v0.2.1-0.2.0-alpha.1
+```
+6. create a new tag e.g.
+```
+git tag v0.2.1-0.2.0-alpha.2
+```
+7. Push the tag upstream
+```
+git push upstream --tag v0.2.1-0.2.0-alpha.2
+```
+
+
 
 
 
