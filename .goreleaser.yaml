@@ -1,7 +1,23 @@
+builds:
+- id: "ocm-status-addon"
+  main: ./cmd/ocm-status-addon
+  binary: bin/ocm-status-addon
+  ldflags:
+  - "{{ .Env.LDFLAGS }}"
+  goos:
+  - linux
+  goarch:
+  - amd64
+  - arm64
+  ignore:
+  - goos: darwin
+    goarch: ppc64le
+  env:
+  - CGO_ENABLED=0
 kos:           
   - repository: ghcr.io/kubestellar/ocm-status-addon
     main: ./cmd/ocm-status-addon
-#    build: manager
+    build: ocm-status-addon
     tags:
     - '{{.Version}}'
     - latest
