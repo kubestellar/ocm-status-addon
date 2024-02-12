@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Image URL to use all building/pushing image targets
-KO_DOCKER_REPO ?= ghcr.io/kubestellar
-IMAGE_TAG ?= 0.2.0-alpha.1
+# Repo used for local build/testing
+KO_DOCKER_REPO ?= ko.local
+IMAGE_TAG ?= $(shell git rev-parse --short HEAD)
 CMD_NAME ?= ocm-status-addon
 IMG ?= ${KO_DOCKER_REPO}/${CMD_NAME}:${IMAGE_TAG}
 export STATUS_ADDDON_IMAGE_NAME ?= ${IMG}
+
+# default kind hosting cluster name
+KIND_HOSTING_CLUSTER ?= kubeflex
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.26.1
@@ -27,6 +30,8 @@ DEFAULT_NAMESPACE=default
 DEFAULT_IMBS_CONTEXT ?= imbs1
 # Default WEC1 for testing
 DEFAULT_WEC1_CONTEXT ?= cluster1
+# Default WEC2 for testing
+DEFAULT_WEC2_CONTEXT ?= cluster2
 
 
 # We need bash for some conditional logic below.
@@ -121,8 +126,6 @@ test: manifests generate fmt vet envtest ## Run tests.
 
 ##@ Build
 
-
-
 .PHONY: run-agent
 run-agent: manifests generate fmt vet ## Run addon agent on host
 	kubectl config use-context ${DEFAULT_WEC1_CONTEXT}
@@ -134,16 +137,7 @@ run-agent: manifests generate fmt vet ## Run addon agent on host
 
 .PHONY: ko-local-build
 ko-local-build: test ## Build docker image with ko
-	KO_DOCKER_REPO=ko.local ko build --push=false -B ./cmd/${CMD_NAME} -t ${IMAGE_TAG} --platform linux/amd64,linux/arm64
-	docker tag ko.local/${CMD_NAME}:${IMAGE_TAG} ${IMG}
-
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
-
-.PHONY: ko-build-push
-ko-build-push: test ## Build and push docker image with ko
-	KO_DOCKER_REPO=${KO_DOCKER_REPO} ko build -B ./cmd/${CMD_NAME} -t ${IMAGE_TAG} --platform linux/amd64,linux/arm64
+	KO_DOCKER_REPO=${KO_DOCKER_REPO} ko build -B ./cmd/${CMD_NAME} -t ${IMAGE_TAG} --platform linux/${ARCH}
 
 # PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -190,11 +184,16 @@ chart: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(shell echo ${IMG} | sed 's/\(:.*\)v/\1/')
 	$(KUSTOMIZE) build config/default > chart/templates/operator.yaml
 
-.PHONY: chart-push
-chart-push: chart ## push helm chart
-	helm package ./chart --destination . --version ${IMAGE_TAG} --app-version ${IMAGE_TAG}
-	helm push ./*.tgz oci://${KO_DOCKER_REPO}
-	rm ./*.tgz
+# this is used for local testing - since the image is locally built it needs to be loaded also on the WEC cluster(s)
+.PHONY: kind-load-image
+kind-load-image: 
+	kind load --name ${KIND_HOSTING_CLUSTER} docker-image ${IMG}
+	kind load --name ${DEFAULT_WEC1_CONTEXT} docker-image ${IMG}
+	kind load --name ${DEFAULT_WEC2_CONTEXT} docker-image ${IMG}
+
+.PHONY: install-local-chart
+install-local-chart: kind-load-image chart
+	helm upgrade --kube-context ${DEFAULT_IMBS_CONTEXT} --install status-addon -n open-cluster-management chart/ 
 
 ##@ Build Dependencies
 
