@@ -11,8 +11,8 @@ permissions:
  
 env:
   REGISTRY: ghcr.io
-  OPERATOR_IMAGE: kubestellar/status-addon/manager
-  IMAGE_NAME: ${{ github.repository }}/chart
+  OPERATOR_IMAGE: kubestellar/ocm-status-addon
+  CHART_IMAGE: kubestellar/ocm-status-addon-chart
   CHART_PATH: ./chart
 
 jobs:
@@ -42,7 +42,8 @@ jobs:
         args: release --timeout 60m --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        KO_TOKEN: ${{ secrets.TOKEN }}
+        #KO_TOKEN: ${{ secrets.TOKEN }}
+        KO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         USER: ${{ github.actor }}
         EMAIL: ${{ github.actor}}@users.noreply.github.com
 
@@ -61,6 +62,6 @@ jobs:
     - name: Package and push chart
       run: |
         make chart IMG=${{ env.REGISTRY }}/${{ env.OPERATOR_IMAGE }}:${{github.ref_name}}
-        helm package ${{ env.CHART_PATH }} --destination . --version ${{github.ref_name}}
-        helm push ./*.tgz oci://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}    
+        helm package ${{ env.CHART_PATH }} --destination . --version ${{github.ref_name}} --app-version ${{github.ref_name}}
+        helm push ./*.tgz oci://${{ env.REGISTRY }}/${{ env.CHART_IMAGE }}    
 
