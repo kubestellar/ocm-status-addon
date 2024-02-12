@@ -34,24 +34,12 @@ func ListGVRs(aWork *workv1.AppliedManifestWork) []*schema.GroupVersionResource 
 	return gvrs
 }
 
-func AddTrackedObjectsUID(aWork *workv1.AppliedManifestWork, trackedObjs map[string]string) {
-	for _, appliedResource := range aWork.Status.AppliedResources {
-		trackedObjs[appliedResource.UID] = aWork.Spec.ManifestWorkName
-	}
-}
-
 func GetTrackedObjectsUID(aWork *workv1.AppliedManifestWork) []string {
 	uids := []string{}
 	for _, appliedResource := range aWork.Status.AppliedResources {
 		uids = append(uids, appliedResource.UID)
 	}
 	return uids
-}
-
-func RemoveTrackedObjectsUID(uids []string, trackedObjs map[string]string) {
-	for _, uid := range uids {
-		delete(trackedObjs, uid)
-	}
 }
 
 func GetManifestWork(c client.Client, name, namespace string) (*workv1.ManifestWork, error) {

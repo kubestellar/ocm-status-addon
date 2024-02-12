@@ -86,3 +86,38 @@ func HasPrefixInMap(m map[string]string, prefix string) bool {
 	}
 	return false
 }
+
+// SafeTrackedObjectstMap maps tracked object UID to the manifestWork name
+type SafeTrackedObjectstMap struct {
+	mu sync.Mutex
+	v  map[string]string
+}
+
+func NewSafeTrackedObjectstMap() *SafeTrackedObjectstMap {
+	return &SafeTrackedObjectstMap{
+		v: make(map[string]string),
+	}
+}
+
+func (s *SafeTrackedObjectstMap) Get(key string) (string, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.v[key]
+	return v, ok
+}
+
+func (s *SafeTrackedObjectstMap) AddTrackedObjectsUID(uids []string, manifestWorkName string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, uid := range uids {
+		s.v[uid] = manifestWorkName
+	}
+}
+
+func (s *SafeTrackedObjectstMap) RemoveTrackedObjectsUID(uids []string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, uid := range uids {
+		delete(s.v, uid)
+	}
+}

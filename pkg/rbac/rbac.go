@@ -29,7 +29,7 @@ func AddonRBAC(kubeConfig *rest.Config) agent.PermissionConfigFunc {
 				Namespace: cluster.Name,
 			},
 			Rules: []rbacv1.PolicyRule{
-				{Verbs: []string{"get", "list", "watch", "create", "update"}, Resources: []string{"workstatuses"}, APIGroups: []string{"edge.kubestellar.io"}},
+				{Verbs: []string{"get", "list", "watch", "create", "delete", "update"}, Resources: []string{"workstatuses"}, APIGroups: []string{"edge.kubestellar.io"}},
 				{Verbs: []string{"patch", "update"}, Resources: []string{"workstatuses/status"}, APIGroups: []string{"edge.kubestellar.io"}},
 				{Verbs: []string{"get", "list", "watch"}, Resources: []string{"managedclusteraddons"}, APIGroups: []string{"addon.open-cluster-management.io"}},
 				{Verbs: []string{"get", "list", "watch"}, Resources: []string{"manifestworks"}, APIGroups: []string{"work.open-cluster-management.io"}},
