@@ -111,15 +111,15 @@ now you can start for local testing with `make run-agent`
 5. check existing tags e.g.,
 ```
 git tag 
-v0.2.1-0.2.0-alpha.1
+v0.2.0-alpha.1
 ```
 6. create a new tag e.g.
 ```
-git tag v0.2.1-0.2.0-alpha.2
+git tag v0.2.0-alpha.2
 ```
 7. Push the tag upstream
 ```
-git push upstream --tag v0.2.1-0.2.0-alpha.2
+git push upstream --tag v0.2.0-alpha.2
 ```
 
 
