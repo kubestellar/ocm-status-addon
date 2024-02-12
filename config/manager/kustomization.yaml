@@ -7,7 +7,7 @@ kind: Kustomization
 images:
 - name: controller
   newName: ko.local/ocm-status-addon
-  newTag: b8c4f00
+  newTag: to_be_replaced_by_make_chart
 
 replacements:
 - source:
