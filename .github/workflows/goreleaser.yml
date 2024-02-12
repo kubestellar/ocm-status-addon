@@ -42,7 +42,7 @@ jobs:
         args: release --timeout 60m --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        KO_TOKEN: ${{ secrets.TOKEN }}
+        #KO_TOKEN: ${{ secrets.TOKEN }}
         USER: ${{ github.actor }}
         EMAIL: ${{ github.actor}}@users.noreply.github.com
 
