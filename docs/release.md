@@ -10,7 +10,7 @@ used to deploy the status add-on. The relevant files for goreleaser configuratio
 
 The steps outlined below assume that a release branch for the release that is going to be
 created already exists. Typically a release branch is created at the beginning of each
-new release cycle with `git checkout -b <release branch>`
+new release cycle with `git checkout -b <release branch>`.
 
 ## Steps to make release
 

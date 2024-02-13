@@ -19,6 +19,9 @@ CMD_NAME ?= ocm-status-addon
 IMG ?= ${KO_DOCKER_REPO}/${CMD_NAME}:${IMAGE_TAG}
 export STATUS_ADDDON_IMAGE_NAME ?= ${IMG}
 
+# clusters used for dev/test
+CLUSTERS ?= imdb1 cluster1 cluster2
+
 # default kind hosting cluster name
 KIND_HOSTING_CLUSTER ?= kubeflex
 
@@ -186,10 +189,10 @@ chart: manifests kustomize
 
 # this is used for local testing - since the image is locally built it needs to be loaded also on the WEC cluster(s)
 .PHONY: kind-load-image
-kind-load-image: 
-	kind load --name ${KIND_HOSTING_CLUSTER} docker-image ${IMG}
-	kind load --name ${DEFAULT_WEC1_CONTEXT} docker-image ${IMG}
-	kind load --name ${DEFAULT_WEC2_CONTEXT} docker-image ${IMG}
+kind-load-image:
+	@for c in $(CLUSTERS); do \
+		kind load docker-image ${IMG} --name $$c; \
+	done 
 
 .PHONY: install-local-chart
 install-local-chart: kind-load-image chart
