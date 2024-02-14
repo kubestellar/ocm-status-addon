@@ -114,6 +114,7 @@ rules:
   - workstatuses
   verbs:
   - create
+  - delete
   - get
   - list
   - update
