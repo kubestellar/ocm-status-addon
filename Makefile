@@ -20,7 +20,7 @@ IMG ?= ${KO_DOCKER_REPO}/${CMD_NAME}:${IMAGE_TAG}
 export STATUS_ADDDON_IMAGE_NAME ?= ${IMG}
 
 # clusters used for dev/test
-CLUSTERS ?= imdb1 cluster1 cluster2
+CLUSTERS ?= kubeflex cluster1 cluster2
 
 # default kind hosting cluster name
 KIND_HOSTING_CLUSTER ?= kubeflex
