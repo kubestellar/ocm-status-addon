@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -171,17 +170,4 @@ func GetGVR(mapper meta.RESTMapper, gvk schema.GroupVersionKind) (schema.GroupVe
 	}
 
 	return mapping.Resource, nil
-}
-
-// BuildWorkstatusName returns string in format: <groupversion>-<kind>-<namespace>-<name>
-func BuildWorkstatusName(obj any) string {
-	mObj := obj.(metav1.Object)
-	rObj := obj.(runtime.Object)
-	gvk := rObj.GetObjectKind().GroupVersionKind()
-	return fmt.Sprintf("%s-%s-%s-%s",
-		strings.ToLower(strings.ReplaceAll(gvk.GroupVersion().String(), "/", "")),
-		strings.ToLower(gvk.Kind),
-		mObj.GetNamespace(),
-		mObj.GetName(),
-	)
 }

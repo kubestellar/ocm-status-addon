@@ -55,7 +55,7 @@ type Agent struct {
 	hubClient               client.Client
 	listers                 map[string]*cache.GenericLister
 	informers               map[string]*cache.SharedIndexInformer
-	trackedObjects          map[string]string
+	trackedObjects          util.SafeTrackedObjectstMap
 	trackedAppliedManifests util.SafeAppliedManifestMap
 	objectsCount            util.SafeUIDMap
 	stoppers                map[string]chan struct{}
@@ -107,7 +107,7 @@ func NewAgent(mgr ctrlm.Manager, managedRestConfig *rest.Config, hubRestConfig *
 		trackedAppliedManifests: *util.NewSafeAppliedManifestMap(),
 		objectsCount:            *util.NewSafeUIDMap(),
 		stoppers:                make(map[string]chan struct{}),
-		trackedObjects:          make(map[string]string),
+		trackedObjects:          *util.NewSafeTrackedObjectstMap(),
 		workqueue:               workqueue.NewRateLimitingQueue(ratelimiter),
 	}
 
@@ -198,13 +198,9 @@ func (a *Agent) enqueueObject(obj interface{}, skipCheckIsDeleted bool) {
 		if err != nil {
 			// The resource no longer exist, which means it has been deleted.
 			if apierrors.IsNotFound(err) {
-				// we only track delete for manifestwork, so we can determine
-				// if informers need to be stopped
-				if util.IsAppliedManifestWork(obj) {
-					deletedObj := util.CopyObjectMetaAndType(obj.(runtime.Object))
-					key.DeletedObject = &deletedObj
-					a.workqueue.Add(key)
-				}
+				deletedObj := util.CopyObjectMetaAndType(obj.(runtime.Object))
+				key.DeletedObject = &deletedObj
+				a.workqueue.Add(key)
 				return
 			}
 			// TODO - return error here
@@ -289,12 +285,5 @@ func shouldSkipUpdate(old, new interface{}) bool {
 	oldMObj := old.(metav1.Object)
 	newMObj := new.(metav1.Object)
 	// do not enqueue update events for objects that have not changed
-	if newMObj.GetResourceVersion() == oldMObj.GetResourceVersion() {
-		return true
-	}
-	// avoid enqueing events for updates to applied manifest
-	if util.IsAppliedManifestWork(new) {
-		return true
-	}
-	return false
+	return newMObj.GetResourceVersion() == oldMObj.GetResourceVersion()
 }

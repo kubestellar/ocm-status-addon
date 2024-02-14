@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -50,19 +51,15 @@ func (a *Agent) reconcile(ctx context.Context, key util.Key) (bool, error) {
 		return a.handleAppliedManifestWork(obj, isBeingDeleted)
 	}
 
-	// avoid further processing for keys of objects being deleted that do not have a deleted object
-	if util.IsBeingDeleted(obj) && key.DeletedObject == nil {
-		return false, nil
-	}
-
 	mObj := obj.(metav1.Object)
-	// stop processing if not created by a manifest work
-	if _, ok := a.trackedObjects[string(mObj.GetUID())]; !ok {
+	// stop processing if not created by a manifest work and not deleted
+	_, ok := a.trackedObjects.Get(string(mObj.GetUID()))
+	if !ok && !isBeingDeleted {
 		return false, nil
 	}
 
 	a.logger.Info("going to update status:", "object", util.GenerateObjectInfoString(obj))
-	if err := a.updateWorkStatus(obj); err != nil {
+	if err := a.updateWorkStatus(obj, isBeingDeleted); err != nil {
 		return false, err
 	}
 
@@ -83,19 +80,38 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 		// list of GVR requiring to start informers for
 		gvrs := ocm.ListGVRs(aWork)
 
-		// need to check only if being deleted as the list is removed before the applied manifest is removed
 		if len(gvrs) == 0 {
 			// requeue because it may take time for applied manifest to get updated with GVRs
 			return true, nil
 		}
-		// track objects set by manifest & start informers
-		ocm.AddTrackedObjectsUID(aWork, a.trackedObjects)
 		// need to maintain gvrs in a map indexed by name as the gvrs are deleted before we get them in the manifest
 		uids := ocm.GetTrackedObjectsUID(aWork)
 		info := util.AppliedManifestInfo{
 			ObjectUIDs: uids,
 			GVRs:       gvrs,
 		}
+
+		// check if this applied manifest is already tracked(manifest update)
+		oldinfo, ok := a.trackedAppliedManifests.Get(mObj.GetName())
+		if ok {
+			if reflect.DeepEqual(info, oldinfo) {
+				return false, nil
+			}
+			a.logger.Info("processing changes in the applied manifest resources list", "manifest-name", mObj.GetName())
+			addedInfo, removedInfo := util.GetAddedRemovedInfo(oldinfo, info)
+			a.trackedObjects.AddTrackedObjectsUID(addedInfo.ObjectUIDs, aWork.Spec.ManifestWorkName)
+			a.trackedObjects.RemoveTrackedObjectsUID(removedInfo.ObjectUIDs)
+
+			a.trackedAppliedManifests.Set(mObj.GetName(), info)
+			// start/stop the informers if needed
+			go a.startInformers(addedInfo.GVRs, addedInfo.ObjectUIDs)
+			a.stopInformers(removedInfo)
+
+			return false, nil
+		}
+
+		// track objects set by manifest & start informers
+		a.trackedObjects.AddTrackedObjectsUID(info.ObjectUIDs, aWork.Spec.ManifestWorkName)
 		a.trackedAppliedManifests.Set(mObj.GetName(), info)
 		go a.startInformers(gvrs, uids)
 	} else {
@@ -103,7 +119,7 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 		if !ok {
 			a.logger.Info("could not find appliedManifestWorkInfo", "key", mObj.GetName())
 		}
-		ocm.RemoveTrackedObjectsUID(appliedManifestWorkInfo.ObjectUIDs, a.trackedObjects)
+		a.trackedObjects.RemoveTrackedObjectsUID(appliedManifestWorkInfo.ObjectUIDs)
 		a.stopInformers(appliedManifestWorkInfo)
 		a.trackedAppliedManifests.Delete(mObj.GetName())
 	}
@@ -111,15 +127,10 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 	return false, nil
 }
 
-func (a *Agent) updateWorkStatus(obj runtime.Object) error {
+func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error {
 	mObj := obj.(metav1.Object)
 	namespace := a.clusterName
-	name, ok := a.trackedObjects[string(mObj.GetUID())]
-	if !ok {
-		return fmt.Errorf("object not found in tracked objects: uid=%s", string(mObj.GetUID()))
-	}
 
-	// check if WorkStatus exists and if not create it
 	workStatus := &v1alpha1.WorkStatus{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.BuildWorkstatusName(obj),
@@ -129,6 +140,27 @@ func (a *Agent) updateWorkStatus(obj runtime.Object) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
+
+	// delete WorkStatus if exists, when the workload object is deleted
+	if isBeingDeleted {
+		err := a.hubClient.Get(ctx, client.ObjectKeyFromObject(workStatus), workStatus, &client.GetOptions{})
+		if err != nil && !apierrors.IsNotFound(err) {
+			return err
+		}
+		err = a.hubClient.Delete(ctx, workStatus, &client.DeleteOptions{})
+		if err != nil {
+			return err
+		}
+		a.logger.Info("workStatus deleted", "workStatus-name", workStatus.Name)
+		return nil
+	}
+
+	name, ok := a.trackedObjects.Get(string(mObj.GetUID()))
+	if !ok {
+		return fmt.Errorf("object not found in tracked objects: uid=%s", string(mObj.GetUID()))
+	}
+
+	// check if WorkStatus exists and if not create it
 	err := a.hubClient.Get(ctx, client.ObjectKeyFromObject(workStatus), workStatus, &client.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
