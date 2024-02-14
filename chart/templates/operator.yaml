@@ -288,9 +288,9 @@ spec:
         - controller
         env:
         - name: STATUS_ADDDON_IMAGE_NAME
-          value: ghcr.io/kubestellar/ocm-status-addon:0.2.0-alpha.1
-        image: ghcr.io/kubestellar/ocm-status-addon:0.2.0-alpha.1
-        imagePullPolicy: Always
+          value: ko.local/ocm-status-addon:to_be_replaced_by_make_chart
+        image: ko.local/ocm-status-addon:to_be_replaced_by_make_chart
+        imagePullPolicy: IfNotPresent
         name: status-controller
         resources:
           limits:

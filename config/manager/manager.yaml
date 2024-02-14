@@ -27,7 +27,7 @@ spec:
       containers:
       - name: status-controller
         image: controller
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

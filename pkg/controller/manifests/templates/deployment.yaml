@@ -41,7 +41,7 @@ spec:
       containers:
       - name: status-agent
         image: {{ .Image }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
 {{- if or .HTTPProxy .HTTPSProxy}}
         env:
         {{- if .HTTPProxy }}

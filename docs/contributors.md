@@ -1,33 +1,26 @@
 # Developing Status-AddOn
 
+To work on the status-addon code, you will need an OCM hub and at least one
+managed cluster. The commands used here assume that you have followed 
+[these steps](https://github.com/kubestellar/kubestellar/blob/main/docs/content/v0.20/examples.md#common-setup)
+to install OCM and two managed clusters.
+
 ## Run add-on agent in dev mode
 
 ```shell
 make run-agent
 ```
 
-## Build add-on image and push to docker registry
+## Making local build
 
 ```shell
-make ko-build-push
+make ko-local-build
 ```
 
-## Build and push chart
+## Install chart from local repo using local build
 
 ```shell
-make chart-push
-```
-
-## Install chart from OCI repo
-
-```shell
-helm --kube-context imbs1 upgrade --install status-addon -n open-cluster-management oci://ghcr.io/kubestellar/ocm-status-addon-chart --version 0.2.0-alpha.1
-```
-
-## Install chart from local repo
-
-```shell
-helm --kube-context imbs1 upgrade --install status-addon -n open-cluster-management chart/ 
+make install-local-chart
 ```
 
 ## Restart add-on manager on hub
@@ -100,6 +93,9 @@ Verify that the status agent was stopped:
 kubectl --context cluster1 -n open-cluster-management-agent-addon get deployments.apps status-agent 
 ```
 now you can start for local testing with `make run-agent`
+
+
+
 
 
 

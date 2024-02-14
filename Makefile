@@ -12,12 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Image URL to use all building/pushing image targets
-KO_DOCKER_REPO ?= ghcr.io/kubestellar
-IMAGE_TAG ?= 0.2.0-alpha.1
+# Repo used for local build/testing
+KO_DOCKER_REPO ?= ko.local
+IMAGE_TAG ?= $(shell git rev-parse --short HEAD)
 CMD_NAME ?= ocm-status-addon
 IMG ?= ${KO_DOCKER_REPO}/${CMD_NAME}:${IMAGE_TAG}
 export STATUS_ADDDON_IMAGE_NAME ?= ${IMG}
+
+# clusters used for dev/test
+CLUSTERS ?= imdb1 cluster1 cluster2
+
+# default kind hosting cluster name
+KIND_HOSTING_CLUSTER ?= kubeflex
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.26.1
@@ -27,6 +33,8 @@ DEFAULT_NAMESPACE=default
 DEFAULT_IMBS_CONTEXT ?= imbs1
 # Default WEC1 for testing
 DEFAULT_WEC1_CONTEXT ?= cluster1
+# Default WEC2 for testing
+DEFAULT_WEC2_CONTEXT ?= cluster2
 
 
 # We need bash for some conditional logic below.
@@ -121,8 +129,6 @@ test: manifests generate fmt vet envtest ## Run tests.
 
 ##@ Build
 
-
-
 .PHONY: run-agent
 run-agent: manifests generate fmt vet ## Run addon agent on host
 	kubectl config use-context ${DEFAULT_WEC1_CONTEXT}
@@ -134,16 +140,7 @@ run-agent: manifests generate fmt vet ## Run addon agent on host
 
 .PHONY: ko-local-build
 ko-local-build: test ## Build docker image with ko
-	KO_DOCKER_REPO=ko.local ko build --push=false -B ./cmd/${CMD_NAME} -t ${IMAGE_TAG} --platform linux/amd64,linux/arm64
-	docker tag ko.local/${CMD_NAME}:${IMAGE_TAG} ${IMG}
-
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
-
-.PHONY: ko-build-push
-ko-build-push: test ## Build and push docker image with ko
-	KO_DOCKER_REPO=${KO_DOCKER_REPO} ko build -B ./cmd/${CMD_NAME} -t ${IMAGE_TAG} --platform linux/amd64,linux/arm64
+	KO_DOCKER_REPO=${KO_DOCKER_REPO} ko build -B ./cmd/${CMD_NAME} -t ${IMAGE_TAG} --platform linux/${ARCH}
 
 # PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -190,11 +187,16 @@ chart: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(shell echo ${IMG} | sed 's/\(:.*\)v/\1/')
 	$(KUSTOMIZE) build config/default > chart/templates/operator.yaml
 
-.PHONY: chart-push
-chart-push: chart ## push helm chart
-	helm package ./chart --destination . --version ${IMAGE_TAG} --app-version ${IMAGE_TAG}
-	helm push ./*.tgz oci://${KO_DOCKER_REPO}
-	rm ./*.tgz
+# this is used for local testing - since the image is locally built it needs to be loaded also on the WEC cluster(s)
+.PHONY: kind-load-image
+kind-load-image:
+	@for c in $(CLUSTERS); do \
+		kind load docker-image ${IMG} --name $$c; \
+	done 
+
+.PHONY: install-local-chart
+install-local-chart: kind-load-image chart
+	helm upgrade --kube-context ${DEFAULT_IMBS_CONTEXT} --install status-addon -n open-cluster-management chart/ 
 
 ##@ Build Dependencies
 
@@ -209,18 +211,12 @@ CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v5.1.0
 CONTROLLER_TOOLS_VERSION ?= v0.11.3
 
-KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
-kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. If wrong version is installed, it will be removed before downloading.
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. 
 $(KUSTOMIZE): $(LOCALBIN)
-	@if test -x $(LOCALBIN)/kustomize && ! $(LOCALBIN)/kustomize version | grep -q $(KUSTOMIZE_VERSION); then \
-		echo "$(LOCALBIN)/kustomize version is not expected $(KUSTOMIZE_VERSION). Removing it before installing."; \
-		rm -rf $(LOCALBIN)/kustomize; \
-	fi
-	test -s $(LOCALBIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) --output install_kustomize.sh && bash install_kustomize.sh $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); rm install_kustomize.sh; }
+	test -s $(LOCALBIN)/kustomize || GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v5@latest
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary. If wrong version is installed, it will be overwritten.
