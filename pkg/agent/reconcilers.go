@@ -22,6 +22,7 @@ import (
 
 const (
 	ManagedByKSLabelKeyPrefix = "managed-by.kubestellar.io"
+	SingletonstatusLabelKey  = "managed-by.kubestellar.io/singletonstatus"
 )
 
 // main reconciliation loop. The returned bool value allows to re-enque even if no errors
@@ -184,6 +185,12 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 			// TODO - need to do this also when labels are updated on manifest work
 			// TODO - there are currently no labels on workstatus but should consider merging in case labels are set
 			workStatus.Labels = manifestWork.Labels
+
+			// copy singleton label from the object, if exist
+			objLabels := mObj.GetLabels()
+			if val, ok := objLabels[SingletonstatusLabelKey]; ok {
+				workStatus.Labels[SingletonstatusLabelKey] = val
+			}
 
 			// set object ref
 			gvk := schema.GroupVersionKind{
