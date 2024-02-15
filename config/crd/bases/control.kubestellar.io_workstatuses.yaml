@@ -5,9 +5,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.11.3
   creationTimestamp: null
-  name: workstatuses.edge.kubestellar.io
+  name: workstatuses.control.kubestellar.io
 spec:
-  group: edge.kubestellar.io
+  group: control.kubestellar.io
   names:
     kind: WorkStatus
     listKind: WorkStatusList
