@@ -208,6 +208,17 @@ rules:
   - patch
   - update
 - apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - rbac.authorization.k8s.io
   resources:
   - rolebindings
@@ -289,8 +300,8 @@ spec:
         - controller
         env:
         - name: STATUS_ADDDON_IMAGE_NAME
-          value: ko.local/ko.local/ocm-status-addon:to_be_replaced_by_make_chart
-        image: ko.local/ko.local/ocm-status-addon:to_be_replaced_by_make_chart
+          value: ko.local/ocm-status-addon:to_be_replaced
+        image: ko.local/ocm-status-addon:to_be_replaced
         imagePullPolicy: IfNotPresent
         name: status-controller
         resources:
