@@ -41,8 +41,16 @@ var excludedGVKs = map[string]bool{
 	"/v1, Kind=Service":        true,
 }
 
-// Agent watches all objects, find associated placements, when mached a placement wraps and
-// place objects ino mailboxes
+// Agent tracks objects applied by the work agent by watching
+// AppliedManifestWork* objects. These objects list the GVR, name
+// and namespace (the latter for namespaced objects) of each object applied
+// by the related *ManifestWork*. The status add-on then uses this information
+// to ensure that a singleton informer is started for each GVR,
+// and to track status updates of each tracked object. The status add-on
+// then creates/updates *WorkStatus* objects in the ITS with the status
+// of tracked objects in the namespace associated with the WEC cluster.
+// A `WorkStatus` object contains status for exactly one object, so that
+// status updates for one object do not require updates of a whole bundle.
 type Agent struct {
 	agentName               string
 	clusterName             string

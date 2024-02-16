@@ -28,14 +28,14 @@ and RBAC permissions to enable this functionality.
 2. Setup KubeStellar as described in [setup](https://github.com/kubestellar/kubestellar/blob/main/docs/content/v0.20/examples.md#common-setup), then install
    status add-on with helm:
     ```shell
-    helm --kube-context imbs1 upgrade --install ocm-status-addon -n open-cluster-management oci://ghcr.io/kubestellar/ocm-status-addon-chart --version 0.2.0-alpha.1
+    helm --kube-context imbs1 upgrade --install ocm-status-addon -n open-cluster-management oci://ghcr.io/kubestellar/ocm-status-addon-chart --version <latest version>
     ```
 3. Check status of agent deployments
     ```shell
     kubectl --context imbs1 -n cluster1 get managedclusteraddons addon-status
     kubectl --context imbs1 -n cluster2 get managedclusteraddons addon-status
     ```
-    After agents start and are running, `AVAILABLE`` should be `True` on both namespaces
+    After agents start and are running, `AVAILABLE` should be `True` on both namespaces
 
 ## Using the Add-On
 
