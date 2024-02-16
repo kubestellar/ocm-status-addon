@@ -35,7 +35,7 @@ and RBAC permissions to enable this functionality.
     kubectl --context imbs1 -n cluster1 get managedclusteraddons addon-status
     kubectl --context imbs1 -n cluster2 get managedclusteraddons addon-status
     ```
-    After agents start and are running, `AVAILABLE`` should be `True` on both namespaces
+    After agents start and are running, `AVAILABLE` should be `True` on both namespaces
 
 ## Using the Add-On
 
