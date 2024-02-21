@@ -1,4 +1,4 @@
-name: test workstatus creation
+name: test workstatus operations
 
 on:
   workflow_call:
@@ -15,8 +15,8 @@ on:
       - 'v*'
 
 jobs:
-  test-workstatus-creation:
-    name: Test workstatus creation
+  test-workstatus-operations:
+    name: Test workstatus operations
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.1
@@ -43,34 +43,34 @@ jobs:
         run: |
           test/e2e/run.sh
 
-      - name: show docker images
+      - name: Show docker images
         if: always()
         run: docker images
 
-      - name: show kubeconfig contexts
+      - name: Show kubeconfig contexts
         if: always()
         run: kubectl config get-contexts
 
-      - name: show clustermanagementaddons
+      - name: Show clustermanagementaddons
         if: always()
         run: kubectl --context kind-hub get clustermanagementaddons
 
-      - name: show managedclusteraddons
+      - name: Show managedclusteraddons
         if: always()
         run: kubectl --context kind-hub get managedclusteraddons -A
 
-      - name: show manifestworks in hub
+      - name: Show manifestworks in hub
         if: always()
         run: kubectl --context kind-hub get manifestwork -oyaml -A
 
-      - name: show workloads in cluster1
+      - name: Show workloads in cluster1
         if: always()
         run: kubectl --context kind-cluster1 get all -A
 
-      - name: show logs of the agent in cluster1
+      - name: Show logs of the agent in cluster1
         if: always()
         run: kubectl --context kind-cluster1 -n open-cluster-management-agent-addon logs deployment.apps/status-agent
 
-      - name: show workstatus objects in hub
+      - name: Show workstatus objects in hub
         if: always()
         run: kubectl --context kind-hub get workstatus -oyaml -A
