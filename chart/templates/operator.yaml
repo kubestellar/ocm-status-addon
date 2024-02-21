@@ -200,6 +200,7 @@ rules:
   - list
   - update
   - watch
+  - patch
 - apiGroups:
   - control.kubestellar.io
   resources:

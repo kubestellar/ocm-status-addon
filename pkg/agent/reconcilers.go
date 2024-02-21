@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -217,6 +218,18 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 			}
 		} else {
 			return err
+		}
+	}
+
+	// patch the workStatus with singleton label if the object was labeled
+	objLabels := mObj.GetLabels()
+	if val, ok := objLabels[SingletonstatusLabelKey]; ok {
+		if _, ok := workStatus.Labels[SingletonstatusLabelKey]; !ok {
+			patchString := fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s"}}}`, SingletonstatusLabelKey, val)
+			err = a.hubClient.Patch(ctx, workStatus, client.RawPatch(types.MergePatchType, []byte(patchString)))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
