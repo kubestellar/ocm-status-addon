@@ -48,7 +48,6 @@ type WorkStatusList struct {
 
 // Manifest represents a resource to be deployed
 type RawStatus struct {
-	// +kubebuilder:validation:EmbeddedResource
 	// +kubebuilder:pruning:PreserveUnknownFields
 	runtime.RawExtension `json:",inline"`
 }

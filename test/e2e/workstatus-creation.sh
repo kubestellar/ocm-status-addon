@@ -81,4 +81,7 @@ EOF
 :
 wait-for-cmd '[ "$(kubectl --context kind-hub -n cluster1 get workstatus appsv1-deployment-nginx-nginx -o jsonpath="{.status.availableReplicas}" 2>/dev/null)" == 1 ]'
 
-: SUCCESS: Test passed
+:
+: -------------------------------------------------------------------------
+: SUCCESS: Workstatus creation test passed
+:
