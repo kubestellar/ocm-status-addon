@@ -64,7 +64,6 @@ spec:
           status:
             description: Manifest represents a resource to be deployed
             type: object
-            x-kubernetes-embedded-resource: true
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
