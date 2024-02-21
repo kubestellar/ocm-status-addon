@@ -6,7 +6,7 @@ The only exceptions are
 - `clusteradm` is needed to run the test;
 - `helm` is *not* needed to run the test.
 
-## Use the test
+## Use the tests
 
 In the root directory of this git repo:
 ```

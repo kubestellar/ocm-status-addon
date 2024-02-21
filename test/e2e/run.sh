@@ -22,3 +22,4 @@ ${SRC_DIR}/cleanup.sh
 source "${SRC_DIR}/setup-shell.sh"
 ${SRC_DIR}/setup-ocm.sh
 ${SRC_DIR}/workstatus-creation.sh
+${SRC_DIR}/workstatus-patching.sh
