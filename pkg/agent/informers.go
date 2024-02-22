@@ -35,7 +35,7 @@ func (a *Agent) startInformers(gvrs []*schema.GroupVersionResource, uids []strin
 
 		// we do not need to start informers for objects that do not have status
 		if _, ok := excludedGVKs[gvk.String()]; ok {
-			return
+			continue
 		}
 
 		key := util.KeyForGroupVersionKind(gvk.Group, gvk.Version, gvk.Kind)

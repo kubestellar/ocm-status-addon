@@ -23,7 +23,8 @@ import (
 
 const (
 	ManagedByKSLabelKeyPrefix = "managed-by.kubestellar.io"
-	SingletonstatusLabelKey  = "managed-by.kubestellar.io/singletonstatus"
+	TransportLabelPrefix      = "transport.kubestellar.io"
+	SingletonstatusLabelKey   = "managed-by.kubestellar.io/singletonstatus"
 )
 
 // main reconciliation loop. The returned bool value allows to re-enque even if no errors
@@ -173,7 +174,8 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 			}
 
 			// only update status for KS-managed (by bindingpolicies here) objects
-			if !util.HasPrefixInMap(manifestWork.Labels, ManagedByKSLabelKeyPrefix) {
+			// TODO remove the check for ManagedByKSLabelKeyPrefix after we switch to new transport
+			if !util.HasPrefixInMap(manifestWork.Labels, ManagedByKSLabelKeyPrefix) && !util.HasPrefixInMap(manifestWork.Labels, TransportLabelPrefix) {
 				a.logger.Info("object not managed by a KS bindingpolicy, status not updated", "object", name, "namespace", namespace)
 				return nil
 			}
