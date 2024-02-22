@@ -14,7 +14,7 @@ resources:
   controller: true
   domain: github.com/kubestellar
   group: tenancy
-  kind: Placement
+  kind: WorkStatus
   path: github.com/kubestellar/ocm-status-addon/api/v1alpha1
   version: v1alpha1
 version: "3"

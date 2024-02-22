@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	ManagedByPlacementPrefix = "managed-by.kubestellar.io"
+	ManagedByKSLabelKeyPrefix = "managed-by.kubestellar.io"
 )
 
 // main reconciliation loop. The returned bool value allows to re-enque even if no errors
@@ -170,9 +170,9 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 				return fmt.Errorf("failed to get manifestWork: %w", err)
 			}
 
-			// only update status for KS placement-managed objects
-			if !util.HasPrefixInMap(manifestWork.Labels, ManagedByPlacementPrefix) {
-				a.logger.Info("object not managed by a KS placement, status not updated", "object", name, "namespace", namespace)
+			// only update status for KS-managed (by bindingpolicies here) objects
+			if !util.HasPrefixInMap(manifestWork.Labels, ManagedByKSLabelKeyPrefix) {
+				a.logger.Info("object not managed by a KS bindingpolicy, status not updated", "object", name, "namespace", namespace)
 				return nil
 			}
 
@@ -180,7 +180,7 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 				return fmt.Errorf("failed to set controller reference: %w", err)
 			}
 
-			// copy labels from manifest work to workstatus - this will be useful for tracking source placement
+			// copy labels from manifest work to workstatus - this will be useful for tracking source bindingpolicy
 			// TODO - need to do this also when labels are updated on manifest work
 			// TODO - there are currently no labels on workstatus but should consider merging in case labels are set
 			workStatus.Labels = manifestWork.Labels
