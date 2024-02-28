@@ -61,12 +61,14 @@ type Agent struct {
 	managedDynamicFactory   dynamicinformer.DynamicSharedInformerFactory
 	restMapper              meta.RESTMapper
 	hubClient               client.Client
-	listers                 map[string]*cache.GenericLister
-	informers               map[string]*cache.SharedIndexInformer
+	//listers                 map[string]*cache.GenericLister
+	//informers               map[string]*cache.SharedIndexInformer
+	listers                 *util.SafeMap
+	informers               *util.SafeMap
 	trackedObjects          util.SafeTrackedObjectstMap
-	trackedAppliedManifests util.SafeAppliedManifestMap
+	trackedAppliedManifests util.SafeMap
 	objectsCount            util.SafeUIDMap
-	stoppers                map[string]chan struct{}
+	stoppers                util.SafeMap
 	workqueue               workqueue.RateLimitingInterface
 	initializedTs           time.Time
 }
@@ -110,11 +112,11 @@ func NewAgent(mgr ctrlm.Manager, managedRestConfig *rest.Config, hubRestConfig *
 		managedDynamicFactory:   managedDynamicFactory,
 		hubClient:               *hubClient,
 		restMapper:              restmapper.NewDiscoveryRESTMapper(groupResources),
-		listers:                 make(map[string]*cache.GenericLister),
-		informers:               make(map[string]*cache.SharedIndexInformer),
-		trackedAppliedManifests: *util.NewSafeAppliedManifestMap(),
+		listers:                 util.NewSafeMap(),
+		informers:               util.NewSafeMap(),
+		trackedAppliedManifests: *util.NewSafeMap(),
 		objectsCount:            *util.NewSafeUIDMap(),
-		stoppers:                make(map[string]chan struct{}),
+		stoppers:                *util.NewSafeMap(),
 		trackedObjects:          *util.NewSafeTrackedObjectstMap(),
 		workqueue:               workqueue.NewRateLimitingQueue(ratelimiter),
 	}
@@ -157,7 +159,8 @@ func (a *Agent) run(workers int) error {
 
 	// wait for all informers caches to be synced
 	a.logger.Info("Waiting for caches to sync")
-	for _, informer := range a.informers {
+	for _, informerIntf := range a.informers.ListValues() {
+		informer := informerIntf.(*cache.SharedIndexInformer)
 		if ok := cache.WaitForCacheSync(ctx.Done(), (*informer).HasSynced); !ok {
 			return fmt.Errorf("failed to wait for caches to sync")
 		}

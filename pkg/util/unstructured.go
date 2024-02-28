@@ -108,11 +108,12 @@ func IsBeingDeleted(obj runtime.Object) bool {
 	return mObj.GetDeletionTimestamp() != nil
 }
 
-func GetObjectFromKey(listers map[string]*cache.GenericLister, key Key) (runtime.Object, error) {
-	pLister := listers[key.GvkKey]
-	if pLister == nil {
+func GetObjectFromKey(listers *SafeMap, key Key) (runtime.Object, error) {
+	pListerIntf, _ := listers.Get(key.GvkKey)
+	if pListerIntf == nil {
 		return nil, fmt.Errorf("could not get lister for key: %s", key.GvkKey)
 	}
+	pLister := pListerIntf.(*cache.GenericLister)
 	lister := *pLister
 
 	namespace, name, err := cache.SplitMetaNamespaceKey(key.NamespaceNameKey)

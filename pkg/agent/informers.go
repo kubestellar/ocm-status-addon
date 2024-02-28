@@ -69,7 +69,7 @@ func (a *Agent) startInformer(gvr schema.GroupVersionResource, gvk schema.GroupV
 		managedDynamicFactory = dynamicinformer.NewDynamicSharedInformerFactory(a.managedDynamicClient, 0*time.Minute)
 	}
 	informer := managedDynamicFactory.ForResource(gvr).Informer()
-	a.informers[key] = &informer
+	a.informers.Set(key, &informer)
 
 	// add the event handler functions
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -90,10 +90,10 @@ func (a *Agent) startInformer(gvr schema.GroupVersionResource, gvk schema.GroupV
 
 	// create and index the lister
 	lister := cache.NewGenericLister(informer.GetIndexer(), gvr.GroupResource())
-	a.listers[key] = &lister
+	a.listers.Set(key, &lister)
 
 	// run the informer
-	a.stoppers[key] = stopper
+	a.stoppers.Set(key, stopper)
 	go informer.Run(stopper)
 }
 
@@ -110,7 +110,7 @@ func (a *Agent) stopInformers(appliedManifestInfo util.AppliedManifestInfo) {
 
 		// only consider existing informers, as some key may refer to informers for object
 		// with GVK not being considered
-		if _, ok := a.informers[key]; !ok {
+		if _, ok := a.informers.Get(key); !ok {
 			continue
 		}
 
@@ -124,14 +124,14 @@ func (a *Agent) stopInformers(appliedManifestInfo util.AppliedManifestInfo) {
 
 func (a *Agent) stopInformer(key string) {
 	a.logger.Info("All instances deployed by hub removed, stopping informer", "key", key)
-	stopper, ok := a.stoppers[key]
+	stopper, ok := a.stoppers.Get(key)
 	if !ok {
 		a.logger.Info("could not get stopper channel", "key", key)
 	}
 	// close channel
-	close(stopper)
+	close(stopper.(chan struct{}))
 	// remove entries for key
-	delete(a.informers, key)
-	delete(a.listers, key)
-	delete(a.stoppers, key)
+	a.informers.Delete(key)
+	a.listers.Delete(key)
+	a.stoppers.Delete(key)
 }
