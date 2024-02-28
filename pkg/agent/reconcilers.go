@@ -22,9 +22,8 @@ import (
 )
 
 const (
-	ManagedByKSLabelKeyPrefix = "managed-by.kubestellar.io"
-	TransportLabelPrefix      = "transport.kubestellar.io"
-	SingletonstatusLabelKey   = "managed-by.kubestellar.io/singletonstatus"
+	TransportKSLabelKeyPrefix = "transport.kubestellar.io"
+	SingletonstatusKSLabelKey = "managed-by.kubestellar.io/singletonstatus"
 )
 
 // main reconciliation loop. The returned bool value allows to re-enque even if no errors
@@ -174,8 +173,7 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 			}
 
 			// only update status for KS-managed (by bindingpolicies here) objects
-			// TODO remove the check for ManagedByKSLabelKeyPrefix after we switch to new transport
-			if !util.HasPrefixInMap(manifestWork.Labels, ManagedByKSLabelKeyPrefix) && !util.HasPrefixInMap(manifestWork.Labels, TransportLabelPrefix) {
+			if !util.HasPrefixInMap(manifestWork.Labels, TransportKSLabelKeyPrefix) {
 				a.logger.Info("object not managed by a KS bindingpolicy, status not updated", "object", name, "namespace", namespace)
 				return nil
 			}
@@ -191,8 +189,8 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 
 			// copy singleton label from the object, if exist
 			objLabels := mObj.GetLabels()
-			if val, ok := objLabels[SingletonstatusLabelKey]; ok {
-				workStatus.Labels[SingletonstatusLabelKey] = val
+			if val, ok := objLabels[SingletonstatusKSLabelKey]; ok {
+				workStatus.Labels[SingletonstatusKSLabelKey] = val
 			}
 
 			// set object ref
@@ -225,9 +223,9 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 
 	// patch the workStatus with singleton label if the object was labeled
 	objLabels := mObj.GetLabels()
-	if val, ok := objLabels[SingletonstatusLabelKey]; ok {
-		if _, ok := workStatus.Labels[SingletonstatusLabelKey]; !ok {
-			patchString := fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s"}}}`, SingletonstatusLabelKey, val)
+	if val, ok := objLabels[SingletonstatusKSLabelKey]; ok {
+		if _, ok := workStatus.Labels[SingletonstatusKSLabelKey]; !ok {
+			patchString := fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s"}}}`, SingletonstatusKSLabelKey, val)
 			err = a.hubClient.Patch(ctx, workStatus, client.RawPatch(types.MergePatchType, []byte(patchString)))
 			if err != nil {
 				return err

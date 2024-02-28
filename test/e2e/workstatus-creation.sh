@@ -34,15 +34,23 @@ apiVersion: work.open-cluster-management.io/v1
 kind: ManifestWork
 metadata:
   labels:
-    managed-by.kubestellar.io/something: "true"
+    transport.kubestellar.io/something: wds1
   name: nginx-deployment
   namespace: cluster1
 spec:
   workload:
     manifests:
+    - apiVersion: v1
+      kind: Namespace
+      metadata:
+        labels:
+          managed-by.kubestellar.io/singletonstatus: bindingpolicy
+        name: nginx
     - apiVersion: apps/v1
       kind: Deployment
       metadata:
+        labels:
+          managed-by.kubestellar.io/singletonstatus: bindingpolicy
         name: nginx
         namespace: nginx
       spec:
@@ -60,19 +68,6 @@ spec:
               image: public.ecr.aws/nginx/nginx:latest 
               ports:
               - containerPort: 80
----
-apiVersion: work.open-cluster-management.io/v1
-kind: ManifestWork
-metadata:
-  name: nginx-namespace
-  namespace: cluster1
-spec:
-  workload:
-    manifests:
-    - apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: nginx
 EOF
 
 :
