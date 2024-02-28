@@ -56,12 +56,10 @@ func (a *Agent) reconcile(ctx context.Context, key util.Key) (bool, error) {
 
 	mObj := obj.(metav1.Object)
 	// stop processing if not created by a manifest work and not deleted
-	fmt.Printf(">> name %s\n", mObj.GetName())
 	_, ok := a.trackedObjects.Get(string(mObj.GetUID()))
 	if !ok && !isBeingDeleted {
 		return false, nil
 	}
-	fmt.Printf(">> admitted name %s\n", mObj.GetName())
 
 	a.logger.Info("going to update status:", "object", util.GenerateObjectInfoString(obj))
 	if err := a.updateWorkStatus(obj, isBeingDeleted); err != nil {
