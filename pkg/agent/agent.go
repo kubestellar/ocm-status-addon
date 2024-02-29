@@ -61,8 +61,6 @@ type Agent struct {
 	managedDynamicFactory   dynamicinformer.DynamicSharedInformerFactory
 	restMapper              meta.RESTMapper
 	hubClient               client.Client
-	//listers                 map[string]*cache.GenericLister
-	//informers               map[string]*cache.SharedIndexInformer
 	listers                 *util.SafeMap
 	informers               *util.SafeMap
 	trackedObjects          util.SafeTrackedObjectstMap
@@ -287,7 +285,7 @@ func (a *Agent) processNextWorkItem(ctx context.Context) bool {
 	return true
 }
 
-func shouldSkipDelete(obj interface{}) bool {
+func shouldSkipDelete(_ interface{}) bool {
 	// logic to determine if should ignore delete based on object GVK
 	return false
 }

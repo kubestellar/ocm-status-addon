@@ -21,14 +21,14 @@ func NewSafeMap() *SafeMap {
 
 func (s *SafeMap) Set(key string, value interface{}) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.v[key] = value
-	s.mu.Unlock()
 }
 
 func (s *SafeMap) Delete(key string) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	delete(s.v, key)
-	s.mu.Unlock()
 }
 
 func (s *SafeMap) Get(key string) (interface{}, bool) {
@@ -61,22 +61,24 @@ func NewSafeUIDMap() *SafeUIDMap {
 
 func (s *SafeUIDMap) AddUID(key, uid string) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	if k := s.v[key]; k == nil {
 		s.v[key] = make(map[string]bool)
 	}
 	s.v[key][uid] = true
-	s.mu.Unlock()
 }
 
 func (s *SafeUIDMap) DeleteUID(key, uid string) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	if k := s.v[key]; k != nil {
 		delete(s.v[key], uid)
 	}
-	s.mu.Unlock()
 }
 
 func (s *SafeUIDMap) GetUIDCount(key string) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if k := s.v[key]; k == nil {
 		return 0
 	}
@@ -104,18 +106,18 @@ func (s *SafeTrackedObjectstMap) Get(key string) (string, bool) {
 
 func (s *SafeTrackedObjectstMap) AddTrackedObjectsUID(uids []string, manifestWorkName string) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, uid := range uids {
 		s.v[uid] = manifestWorkName
 	}
-	s.mu.Unlock()
 }
 
 func (s *SafeTrackedObjectstMap) RemoveTrackedObjectsUID(uids []string) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, uid := range uids {
 		delete(s.v, uid)
 	}
-	s.mu.Unlock()
 }
 
 //***********************************
