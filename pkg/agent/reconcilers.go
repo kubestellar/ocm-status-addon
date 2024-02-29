@@ -95,8 +95,9 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 		}
 
 		// check if this applied manifest is already tracked(manifest update)
-		oldinfo, ok := a.trackedAppliedManifests.Get(mObj.GetName())
+		oldinfoIntf, ok := a.trackedAppliedManifests.Get(mObj.GetName())
 		if ok {
+			oldinfo := oldinfoIntf.(util.AppliedManifestInfo)
 			if reflect.DeepEqual(info, oldinfo) {
 				return false, nil
 			}
@@ -118,10 +119,12 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 		a.trackedAppliedManifests.Set(mObj.GetName(), info)
 		go a.startInformers(gvrs, uids)
 	} else {
-		appliedManifestWorkInfo, ok := a.trackedAppliedManifests.Get(mObj.GetName())
+		appliedManifestWorkInfoIntf, ok := a.trackedAppliedManifests.Get(mObj.GetName())
 		if !ok {
 			a.logger.Info("could not find appliedManifestWorkInfo", "key", mObj.GetName())
+			return false, nil
 		}
+		appliedManifestWorkInfo := appliedManifestWorkInfoIntf.(util.AppliedManifestInfo)
 		a.trackedObjects.RemoveTrackedObjectsUID(appliedManifestWorkInfo.ObjectUIDs)
 		a.stopInformers(appliedManifestWorkInfo)
 		a.trackedAppliedManifests.Delete(mObj.GetName())
@@ -152,7 +155,8 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 		}
 		err = a.hubClient.Delete(ctx, workStatus, &client.DeleteOptions{})
 		if err != nil {
-			return err
+			a.logger.Info("workStatus was previously deleted", "workStatus-name", workStatus.Name)
+			return nil
 		}
 		a.logger.Info("workStatus deleted", "workStatus-name", workStatus.Name)
 		return nil
