@@ -158,8 +158,8 @@ func (a *Agent) run(workers int) error {
 	// wait for all informers caches to be synced
 	a.logger.Info("Waiting for caches to sync")
 	for _, informerIntf := range a.informers.ListValues() {
-		informer := informerIntf.(*cache.SharedIndexInformer)
-		if ok := cache.WaitForCacheSync(ctx.Done(), (*informer).HasSynced); !ok {
+		informer := informerIntf.(cache.SharedIndexInformer)
+		if ok := cache.WaitForCacheSync(ctx.Done(), (informer).HasSynced); !ok {
 			return fmt.Errorf("failed to wait for caches to sync")
 		}
 	}

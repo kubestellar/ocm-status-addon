@@ -113,8 +113,7 @@ func GetObjectFromKey(listers *SafeMap, key Key) (runtime.Object, error) {
 	if pListerIntf == nil {
 		return nil, fmt.Errorf("could not get lister for key: %s", key.GvkKey)
 	}
-	pLister := pListerIntf.(*cache.GenericLister)
-	lister := *pLister
+	lister := pListerIntf.(cache.GenericLister)
 
 	namespace, name, err := cache.SplitMetaNamespaceKey(key.NamespaceNameKey)
 	if err != nil {

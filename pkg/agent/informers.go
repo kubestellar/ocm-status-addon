@@ -69,7 +69,7 @@ func (a *Agent) startInformer(gvr schema.GroupVersionResource, gvk schema.GroupV
 		managedDynamicFactory = dynamicinformer.NewDynamicSharedInformerFactory(a.managedDynamicClient, 0*time.Minute)
 	}
 	informer := managedDynamicFactory.ForResource(gvr).Informer()
-	a.informers.Set(key, &informer)
+	a.informers.Set(key, informer)
 
 	// add the event handler functions
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -90,7 +90,7 @@ func (a *Agent) startInformer(gvr schema.GroupVersionResource, gvk schema.GroupV
 
 	// create and index the lister
 	lister := cache.NewGenericLister(informer.GetIndexer(), gvr.GroupResource())
-	a.listers.Set(key, &lister)
+	a.listers.Set(key, lister)
 
 	// run the informer
 	a.stoppers.Set(key, stopper)
