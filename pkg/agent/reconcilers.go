@@ -12,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -37,8 +36,8 @@ func (a *Agent) reconcile(ctx context.Context, key util.Key) (bool, error) {
 		if err != nil {
 			// The resource no longer exist, which means it has been deleted.
 			if apierrors.IsNotFound(err) {
-				utilruntime.HandleError(fmt.Errorf("resource '%s' for lister '%s' in work queue no longer exists", key.NamespaceNameKey, key.GvkKey))
-				return true, err
+				a.logger.Info("object in work queue no longer exists", "key", key.NamespaceNameKey, "lister key", key.GvkKey)
+				return false, nil
 			}
 			return true, err
 		}
@@ -55,9 +54,9 @@ func (a *Agent) reconcile(ctx context.Context, key util.Key) (bool, error) {
 	}
 
 	mObj := obj.(metav1.Object)
-	// stop processing if not created by a manifest work and not deleted
+	// stop processing if not created by a manifest work
 	_, ok := a.trackedObjects.Get(string(mObj.GetUID()))
-	if !ok && !isBeingDeleted {
+	if !ok {
 		return false, nil
 	}
 
