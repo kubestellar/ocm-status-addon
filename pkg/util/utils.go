@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	workv1 "open-cluster-management.io/api/work/v1"
 )
 
 // GetAddedRemovedInfo compares the updated AppliedManifestInfo to the base AppliedManifestInfo
@@ -47,15 +46,11 @@ func GetAddedRemovedInfo(base AppliedManifestInfo, updated AppliedManifestInfo) 
 	return added, removed
 }
 
-// BuildWorkstatusName returns string in format: <groupversion>-<kind>-<namespace>-<name>
-func BuildWorkstatusName(obj any) string {
-	mObj := obj.(metav1.Object)
-	rObj := obj.(runtime.Object)
-	gvk := rObj.GetObjectKind().GroupVersionKind()
-	return fmt.Sprintf("%s-%s-%s-%s",
-		strings.ToLower(strings.ReplaceAll(gvk.GroupVersion().String(), "/", "")),
-		strings.ToLower(gvk.Kind),
-		mObj.GetNamespace(),
-		mObj.GetName(),
-	)
+// BuildWorkstatusName builds a unique work status name from the applied manifest uid and manifestwork name
+func BuildWorkstatusName(aw workv1.AppliedManifestWork) string {
+	return fmt.Sprintf("%s-%s", aw.UID, aw.Spec.ManifestWorkName)
+}
+
+func IsListerNotFound(err error) bool {
+	return strings.Contains(err.Error(), "could not get lister for key")
 }
