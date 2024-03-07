@@ -24,3 +24,4 @@ ${SRC_DIR}/setup-ocm.sh
 ${SRC_DIR}/workstatus-creation.sh
 ${SRC_DIR}/workstatus-patching.sh
 ${SRC_DIR}/workstatus-updating.sh
+${SRC_DIR}/workstatus-deletion.sh
