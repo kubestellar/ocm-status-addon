@@ -44,3 +44,12 @@ create_and_register cluster1
 wait-for-cmd '[ $(kubectl --context kind-hub get csr 2>/dev/null | egrep ^cluster1- | grep -c Pending) -eq 1 ]'
 clusteradm --context kind-hub accept --clusters cluster1
 kubectl --context kind-hub get managedclusters
+
+:
+: -------------------------------------------------------------------------
+: Build and deploy the addon
+:
+make ko-local-build
+make kind-load-image CLUSTERS="hub cluster1"
+make deploy DEFAULT_IMBS_CONTEXT=kind-hub
+git restore config/manager/kustomization.yaml # restore newTag
