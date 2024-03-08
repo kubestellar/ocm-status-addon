@@ -6,7 +6,14 @@ The only exceptions are
 - `clusteradm` is needed to run the test;
 - `helm` is *not* needed to run the test.
 
-## Use the tests
+## What are the tests
+
+- [workstatus-patching.sh](./workstatus-patching.sh)
+  ensures that the status addon can always patch WorkStatus objects, no matter the '.status' field is empty or not. This test is created for [issue #22](https://github.com/kubestellar/ocm-status-addon/issues/21).
+- [workstatus-crud.sh](./workstatus-crud.sh)
+  verifies the status addon's CRUD operations on WorkStatus objects.
+
+## How to use the tests
 
 In the root directory of this git repo:
 ```

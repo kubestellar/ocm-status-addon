@@ -20,8 +20,6 @@ SRC_DIR="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
 
 ${SRC_DIR}/cleanup.sh
 source "${SRC_DIR}/setup-shell.sh"
-${SRC_DIR}/setup-ocm.sh
-${SRC_DIR}/workstatus-creation.sh
+${SRC_DIR}/setup-ocm-and-addon.sh
 ${SRC_DIR}/workstatus-patching.sh
-${SRC_DIR}/workstatus-updating.sh
-${SRC_DIR}/workstatus-deletion.sh
+${SRC_DIR}/workstatus-crud.sh

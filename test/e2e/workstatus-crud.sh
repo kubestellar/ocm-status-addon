@@ -18,15 +18,6 @@ set -e # exit on error
 
 :
 : -------------------------------------------------------------------------
-: Build and deploy the addon
-:
-make ko-local-build
-make kind-load-image CLUSTERS="hub cluster1"
-make deploy DEFAULT_IMBS_CONTEXT=kind-hub
-git restore config/manager/kustomization.yaml # restore newTag
-
-:
-: -------------------------------------------------------------------------
 : Create a ManifestWork in hub to deliver an app to cluster1
 :
 kubectl --context kind-hub apply -f - <<EOF
@@ -84,4 +75,54 @@ wait-for-cmd '[ "$(kubectl --context kind-hub -n cluster1 get workstatus appsv1-
 :
 : -------------------------------------------------------------------------
 : SUCCESS: Workstatus creation test passed
+:
+
+:
+: -------------------------------------------------------------------------
+: Update the ManifestWork object in hub by scaling to zero replicas
+:
+kubectl --context kind-hub -n cluster1 patch manifestwork nginx-deployment \
+  --type json \
+  --patch '[{"op": "replace", "path": "/spec/workload/manifests/0/spec/replicas", "value": 0}]'
+
+:
+: -------------------------------------------------------------------------
+: Verify that the WorkStatus has been updated in the hub
+:
+wait-for-cmd '[ -z "$(kubectl --context kind-hub -n cluster1 get workstatus appsv1-deployment-nginx-nginx -o jsonpath="{.status.availableReplicas}" 2>/dev/null)" ]'
+
+:
+: -------------------------------------------------------------------------
+: Update the ManifestWork object in hub by scaling to two replicas
+:
+kubectl --context kind-hub -n cluster1 patch manifestwork nginx-deployment \
+  --type json \
+  --patch '[{"op": "replace", "path": "/spec/workload/manifests/0/spec/replicas", "value": 2}]'
+
+:
+: -------------------------------------------------------------------------
+: Verify that the WorkStatus has been updated in the hub
+:
+wait-for-cmd '[ "$(kubectl --context kind-hub -n cluster1 get workstatus appsv1-deployment-nginx-nginx -o jsonpath="{.status.availableReplicas}" 2>/dev/null)" == 2 ]'
+
+:
+: -------------------------------------------------------------------------
+: SUCCESS: Workstatus updating test passed
+:
+
+:
+: -------------------------------------------------------------------------
+: Delete the ManifestWork object in hub
+:
+kubectl --context kind-hub -n cluster1 delete manifestwork nginx-deployment
+
+:
+: -------------------------------------------------------------------------
+: Verify that the WorkStatus has been deleted in the hub
+:
+wait-for-cmd '[ "$(kubectl --context kind-hub -n cluster1 get workstatus appsv1-deployment-nginx-nginx -o name --no-headers 2>/dev/null | wc -l)" == 0 ]'
+
+:
+: -------------------------------------------------------------------------
+: SUCCESS: Workstatus deletion test passed
 :
