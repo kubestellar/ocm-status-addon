@@ -26,6 +26,7 @@ kind: ManifestWork
 metadata:
   labels:
     managed-by.kubestellar.io/something: "true"
+    app.kubernetes.io/name: nginx-deployment
   name: nginx-deployment
   namespace: cluster1
 spec:
@@ -70,7 +71,19 @@ EOF
 : -------------------------------------------------------------------------
 : Verify that the WorkStatus has been created in the hub
 :
-wait-for-cmd '[ "$(kubectl --context kind-hub -n cluster1 get workstatus appsv1-deployment-nginx-nginx -o jsonpath="{.status.availableReplicas}" 2>/dev/null)" == 1 ]'
+wait-for-cmd '[ $(kubectl --context kind-hub -n cluster1 get workstatus -l app.kubernetes.io/name=nginx-deployment --no-headers | wc -l) == 1 ]'
+
+:
+: -------------------------------------------------------------------------
+: Capture the WorkStatus name
+:
+ws_name=$(kubectl --context kind-hub get workstatus -l app.kubernetes.io/name=nginx-deployment -n cluster1 -o jsonpath="{.items[0].metadata.name}")
+
+:
+: -------------------------------------------------------------------------
+: Expect that the WorkStatus matches the desired number of replicas
+:
+wait-for-cmd '[ $(kubectl --context kind-hub -n cluster1 get workstatus $ws_name -o jsonpath="{.status.availableReplicas}" 2>/dev/null) == 1 ]'
 
 :
 : -------------------------------------------------------------------------
@@ -89,7 +102,7 @@ kubectl --context kind-hub -n cluster1 patch manifestwork nginx-deployment \
 : -------------------------------------------------------------------------
 : Verify that the WorkStatus has been updated in the hub
 :
-wait-for-cmd '[ -z "$(kubectl --context kind-hub -n cluster1 get workstatus appsv1-deployment-nginx-nginx -o jsonpath="{.status.availableReplicas}" 2>/dev/null)" ]'
+wait-for-cmd '[ -z $(kubectl --context kind-hub -n cluster1 get workstatus $ws_name -o jsonpath="{.status.availableReplicas}" 2>/dev/null) ]'
 
 :
 : -------------------------------------------------------------------------
@@ -103,7 +116,7 @@ kubectl --context kind-hub -n cluster1 patch manifestwork nginx-deployment \
 : -------------------------------------------------------------------------
 : Verify that the WorkStatus has been updated in the hub
 :
-wait-for-cmd '[ "$(kubectl --context kind-hub -n cluster1 get workstatus appsv1-deployment-nginx-nginx -o jsonpath="{.status.availableReplicas}" 2>/dev/null)" == 2 ]'
+wait-for-cmd '[ $(kubectl --context kind-hub -n cluster1 get workstatus $ws_name -o jsonpath="{.status.availableReplicas}" 2>/dev/null) == 2 ]'
 
 :
 : -------------------------------------------------------------------------
@@ -120,7 +133,7 @@ kubectl --context kind-hub -n cluster1 delete manifestwork nginx-deployment
 : -------------------------------------------------------------------------
 : Verify that the WorkStatus has been deleted in the hub
 :
-wait-for-cmd '[ "$(kubectl --context kind-hub -n cluster1 get workstatus appsv1-deployment-nginx-nginx -o name --no-headers 2>/dev/null | wc -l)" == 0 ]'
+wait-for-cmd '[ $(kubectl --context kind-hub -n cluster1 get workstatus $ws_name -o name --no-headers 2>/dev/null | wc -l) == 0 ]'
 
 :
 : -------------------------------------------------------------------------
