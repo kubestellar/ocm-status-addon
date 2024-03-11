@@ -176,7 +176,7 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 			}
 
 			// only update status for KS-managed (by bindingpolicies here) objects
-			// TODO remove the check for ManagedByKSLabelKeyPrefix after we switch to new transport
+			// The legacy ManagedByKSLabelKeyPrefix is not in use since KubeStellar v0.21.0. We keep it for backward compatibility.
 			if !(util.HasPrefixInMap(manifestWork.Labels, ManagedByKSLabelKeyPrefix) || util.HasPrefixInMap(manifestWork.Labels, TransportLabelPrefix)) {
 				a.logger.Info("object not managed by a KS bindingpolicy, status not updated", "object", aWork.Spec.ManifestWorkName, "namespace", namespace)
 				return nil
@@ -228,9 +228,9 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 
 	// patch the workStatus with singleton label if the object was labeled
 	objLabels := mObj.GetLabels()
-	if val, ok := objLabels[SingletonstatusLabelKey]; ok {
-		if _, ok := workStatus.Labels[SingletonstatusLabelKey]; !ok {
-			patchString := fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s"}}}`, SingletonstatusLabelKey, val)
+	if objVal, ok := objLabels[SingletonstatusLabelKey]; ok {
+		if wsVal, ok := workStatus.Labels[SingletonstatusLabelKey]; !ok || wsVal != objVal {
+			patchString := fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s"}}}`, SingletonstatusLabelKey, objVal)
 			err = a.hubClient.Patch(ctx, workStatus, client.RawPatch(types.MergePatchType, []byte(patchString)))
 			if err != nil {
 				return err
