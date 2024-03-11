@@ -146,7 +146,7 @@ func (a *Agent) updateWorkStatus(obj runtime.Object) error {
 	workStatus := &v1alpha1.WorkStatus{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      util.BuildWorkstatusName(*aWork),
+			Name:      util.BuildWorkstatusName(*aWork, obj),
 		},
 	}
 
@@ -162,7 +162,7 @@ func (a *Agent) updateWorkStatus(obj runtime.Object) error {
 
 			// only update status for KS-managed (by bindingpolicies here) objects
 			// TODO remove the check for ManagedByKSLabelKeyPrefix after we switch to new transport
-			if !(util.HasPrefixInMap(manifestWork.Labels, ManagedByKSLabelKeyPrefix) && util.HasPrefixInMap(manifestWork.Labels, TransportLabelPrefix)) {
+			if !(util.HasPrefixInMap(manifestWork.Labels, ManagedByKSLabelKeyPrefix) || util.HasPrefixInMap(manifestWork.Labels, TransportLabelPrefix)) {
 				a.logger.Info("object not managed by a KS bindingpolicy, status not updated", "object", aWork.Spec.ManifestWorkName, "namespace", namespace)
 				return nil
 			}

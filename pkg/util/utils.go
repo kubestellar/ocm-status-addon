@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	workv1 "open-cluster-management.io/api/work/v1"
 )
@@ -47,10 +49,27 @@ func GetAddedRemovedInfo(base AppliedManifestInfo, updated AppliedManifestInfo) 
 }
 
 // BuildWorkstatusName builds a unique work status name from the applied manifest uid and manifestwork name
-func BuildWorkstatusName(aw workv1.AppliedManifestWork) string {
-	return fmt.Sprintf("%s-%s", aw.UID, aw.Spec.ManifestWorkName)
+func BuildWorkstatusName(aw workv1.AppliedManifestWork, obj any) string {
+	mObj := obj.(metav1.Object)
+	rObj := obj.(runtime.Object)
+	gvk := rObj.GetObjectKind().GroupVersionKind()
+	name := fmt.Sprintf("%s-%s-%s-%s-%s",
+		aw.UID,
+		strings.ToLower(strings.ReplaceAll(gvk.GroupVersion().String(), "/", "")),
+		strings.ToLower(gvk.Kind),
+		mObj.GetNamespace(),
+		mObj.GetName(),
+	)
+	return truncateString(name, 253)
 }
 
 func IsListerNotFound(err error) bool {
 	return strings.Contains(err.Error(), "could not get lister for key")
+}
+
+func truncateString(s string, maxLen int) string {
+	if len(s) > maxLen {
+		return s[:maxLen]
+	}
+	return s
 }
