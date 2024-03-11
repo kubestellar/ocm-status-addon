@@ -23,3 +23,5 @@ source "${SRC_DIR}/setup-shell.sh"
 ${SRC_DIR}/setup-ocm-and-addon.sh
 ${SRC_DIR}/workstatus-patching.sh
 ${SRC_DIR}/workstatus-crud.sh
+${SRC_DIR}/workstatus-stress-test.sh
+
