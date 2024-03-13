@@ -64,7 +64,7 @@ func (a *Agent) reconcile(key util.Key) (bool, error) {
 	}
 
 	a.logger.Info("going to update status:", "object", util.GenerateObjectInfoString(obj))
-	if err := a.updateWorkStatus(obj); err != nil {
+	if err := a.updateWorkStatus(obj, isBeingDeleted); err != nil {
 		return false, err
 	}
 
@@ -130,7 +130,7 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 	return false, nil
 }
 
-func (a *Agent) updateWorkStatus(obj runtime.Object) error {
+func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error {
 	mObj := obj.(metav1.Object)
 	namespace := a.clusterName
 
@@ -150,6 +150,21 @@ func (a *Agent) updateWorkStatus(obj runtime.Object) error {
 		},
 	}
 
+	// delete WorkStatus if exists, when the workload object is deleted
+	if isBeingDeleted {
+		err := a.hubClient.Get(ctx, client.ObjectKeyFromObject(workStatus), workStatus, &client.GetOptions{})
+		if err != nil && !apierrors.IsNotFound(err) {
+			return err
+		}
+		err = a.hubClient.Delete(ctx, workStatus, &client.DeleteOptions{})
+		if err != nil {
+			a.logger.Info("workStatus was previously deleted", "workStatus-name", workStatus.Name)
+			return nil
+		}
+		a.logger.Info("workStatus deleted", "workStatus-name", workStatus.Name)
+		return nil
+	}
+
 	// check if WorkStatus exists and if not create it
 	err = a.hubClient.Get(ctx, client.ObjectKeyFromObject(workStatus), workStatus, &client.GetOptions{})
 	if err != nil {
@@ -167,7 +182,7 @@ func (a *Agent) updateWorkStatus(obj runtime.Object) error {
 				return nil
 			}
 
-			// this was causing race conditions
+			// set the owner reference
 			if err := controllerutil.SetControllerReference(manifestWork, workStatus, a.hubClient.Scheme()); err != nil {
 				return fmt.Errorf("failed to set controller reference: %w", err)
 			}

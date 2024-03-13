@@ -12,6 +12,11 @@ The only exceptions are
   ensures that the status addon can always patch WorkStatus objects, no matter the '.status' field is empty or not. This test is created for [issue #22](https://github.com/kubestellar/ocm-status-addon/issues/21).
 - [workstatus-crud.sh](./workstatus-crud.sh)
   verifies the status addon's CRUD operations on WorkStatus objects.
+- [workstatus-multiple.sh](./workstatus-multiple.sh)
+  verifies the status handles correctly creation and deletion of WorkStatus objects when objects are part of the same ManifestWork.
+- [workstatus-stress-test.sh](./workstatus-stress-test.sh) 
+  creates, deletes and recreates N objects without pause between each operation and then checks all workstatuses are 
+  present on the hub.
 
 ## How to use the tests
 

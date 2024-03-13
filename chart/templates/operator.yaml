@@ -2,8 +2,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.11.3
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: workstatuses.control.kubestellar.io
 spec:
   group: control.kubestellar.io
@@ -23,14 +22,19 @@ spec:
         description: WorkStatus is the Schema for the work status
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
@@ -59,7 +63,6 @@ spec:
           status:
             description: Manifest represents a resource to be deployed
             type: object
-            x-kubernetes-embedded-resource: true
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
@@ -83,7 +86,6 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: addon-manager-role
 rules:
 - apiGroups:
@@ -179,17 +181,6 @@ rules:
   - list
   - watch
 - apiGroups:
-  - coordination.k8s.io
-  resources:
-  - leases
-  verbs:
-  - create
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - control.kubestellar.io
   resources:
   - workstatuses
@@ -198,9 +189,9 @@ rules:
   - delete
   - get
   - list
+  - patch
   - update
   - watch
-  - patch
 - apiGroups:
   - control.kubestellar.io
   resources:
@@ -301,8 +292,8 @@ spec:
         - controller
         env:
         - name: STATUS_ADDDON_IMAGE_NAME
-          value: ko.local/ocm-status-addon:to_be_replaced
-        image: ko.local/ocm-status-addon:to_be_replaced
+          value: ko.local/ocm-status-addon:cf3479e
+        image: ko.local/ocm-status-addon:cf3479e
         imagePullPolicy: IfNotPresent
         name: status-controller
         resources:
