@@ -6,19 +6,20 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/tools/cache"
+	workv1 "open-cluster-management.io/api/work/v1"
 
 	"github.com/kubestellar/ocm-status-addon/pkg/util"
 )
 
 func (a *Agent) startAppliedManifestWorkInformer(stopper chan struct{}) {
 	gvr := schema.GroupVersionResource{
-		Group:    util.AppliedManifestWorkGroup,
-		Version:  util.AppliedManifestWorkVersion,
+		Group:    workv1.GroupVersion.Group,
+		Version:  workv1.GroupVersion.Version,
 		Resource: util.AppliedManifestWorkResource}
 
 	gvk := schema.GroupVersionKind{
-		Group:   util.AppliedManifestWorkGroup,
-		Version: util.AppliedManifestWorkVersion,
+		Group:   gvr.Group,
+		Version: gvr.Version,
 		Kind:    util.AppliedManifestWorkKind}
 
 	a.startInformer(gvr, gvk, stopper, false)

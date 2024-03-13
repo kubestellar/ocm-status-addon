@@ -63,7 +63,6 @@ type Agent struct {
 	hubClient               client.Client
 	listers                 *util.SafeMap
 	informers               *util.SafeMap
-	trackedObjects          util.SafeTrackedObjectstMap
 	trackedAppliedManifests util.SafeMap
 	objectsCount            util.SafeUIDMap
 	stoppers                util.SafeMap
@@ -115,7 +114,6 @@ func NewAgent(mgr ctrlm.Manager, managedRestConfig *rest.Config, hubRestConfig *
 		trackedAppliedManifests: *util.NewSafeMap(),
 		objectsCount:            *util.NewSafeUIDMap(),
 		stoppers:                *util.NewSafeMap(),
-		trackedObjects:          *util.NewSafeTrackedObjectstMap(),
 		workqueue:               workqueue.NewRateLimitingQueue(ratelimiter),
 	}
 
@@ -212,7 +210,6 @@ func (a *Agent) enqueueObject(obj interface{}, skipCheckIsDeleted bool) {
 				a.workqueue.Add(key)
 				return
 			}
-			// TODO - return error here
 			a.logger.Error(err, "error getting object from key")
 			return
 		}
@@ -224,13 +221,13 @@ func (a *Agent) enqueueObject(obj interface{}, skipCheckIsDeleted bool) {
 // processNextWorkItem function in order to read and process a message on the
 // workqueue.
 func (a *Agent) runWorker(ctx context.Context) {
-	for a.processNextWorkItem(ctx) {
+	for a.processNextWorkItem() {
 	}
 }
 
 // processNextWorkItem reads a single work item off the workqueue and
 // attempt to process it by calling the reconcile.
-func (a *Agent) processNextWorkItem(ctx context.Context) bool {
+func (a *Agent) processNextWorkItem() bool {
 	obj, shutdown := a.workqueue.Get()
 	if shutdown {
 		return false
@@ -259,7 +256,7 @@ func (a *Agent) processNextWorkItem(ctx context.Context) bool {
 			return nil
 		}
 		// Run the reconciler, passing it the full key or the metav1 Object
-		requeue, err := a.reconcile(ctx, key)
+		requeue, err := a.reconcile(key)
 		if err != nil {
 			// Put the item back on the workqueue to handle any transient errors.
 			a.workqueue.AddRateLimited(obj)
