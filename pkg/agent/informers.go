@@ -6,25 +6,32 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/tools/cache"
+	workv1 "open-cluster-management.io/api/work/v1"
 
 	"github.com/kubestellar/ocm-status-addon/pkg/util"
 )
 
 func (a *Agent) startAppliedManifestWorkInformer(stopper chan struct{}) {
 	gvr := schema.GroupVersionResource{
-		Group:    util.AppliedManifestWorkGroup,
-		Version:  util.AppliedManifestWorkVersion,
+		Group:    workv1.GroupVersion.Group,
+		Version:  workv1.GroupVersion.Version,
 		Resource: util.AppliedManifestWorkResource}
 
 	gvk := schema.GroupVersionKind{
-		Group:   util.AppliedManifestWorkGroup,
-		Version: util.AppliedManifestWorkVersion,
+		Group:   gvr.Group,
+		Version: gvr.Version,
 		Kind:    util.AppliedManifestWorkKind}
 
 	a.startInformer(gvr, gvk, stopper, false)
 }
 
 func (a *Agent) startInformers(gvrs []*schema.GroupVersionResource, uids []string) {
+	// update the restmapper
+	var err error
+	a.restMapper, err = getRestMapper(a.managedKubernetesClient)
+	if err != nil {
+		a.logger.Error(err, "could not update restMapper")
+	}
 	for i, gvr := range gvrs {
 
 		gvk, err := a.restMapper.KindFor(*gvr)
@@ -35,7 +42,7 @@ func (a *Agent) startInformers(gvrs []*schema.GroupVersionResource, uids []strin
 
 		// we do not need to start informers for objects that do not have status
 		if _, ok := excludedGVKs[gvk.String()]; ok {
-			return
+			continue
 		}
 
 		key := util.KeyForGroupVersionKind(gvk.Group, gvk.Version, gvk.Kind)
@@ -69,7 +76,7 @@ func (a *Agent) startInformer(gvr schema.GroupVersionResource, gvk schema.GroupV
 		managedDynamicFactory = dynamicinformer.NewDynamicSharedInformerFactory(a.managedDynamicClient, 0*time.Minute)
 	}
 	informer := managedDynamicFactory.ForResource(gvr).Informer()
-	a.informers[key] = &informer
+	a.informers.Set(key, informer)
 
 	// add the event handler functions
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -90,10 +97,10 @@ func (a *Agent) startInformer(gvr schema.GroupVersionResource, gvk schema.GroupV
 
 	// create and index the lister
 	lister := cache.NewGenericLister(informer.GetIndexer(), gvr.GroupResource())
-	a.listers[key] = &lister
+	a.listers.Set(key, lister)
 
 	// run the informer
-	a.stoppers[key] = stopper
+	a.stoppers.Set(key, stopper)
 	go informer.Run(stopper)
 }
 
@@ -110,7 +117,7 @@ func (a *Agent) stopInformers(appliedManifestInfo util.AppliedManifestInfo) {
 
 		// only consider existing informers, as some key may refer to informers for object
 		// with GVK not being considered
-		if _, ok := a.informers[key]; !ok {
+		if _, ok := a.informers.Get(key); !ok {
 			continue
 		}
 
@@ -120,18 +127,24 @@ func (a *Agent) stopInformers(appliedManifestInfo util.AppliedManifestInfo) {
 			a.stopInformer(key)
 		}
 	}
+	// update the restmapper
+	var err error
+	a.restMapper, err = getRestMapper(a.managedKubernetesClient)
+	if err != nil {
+		a.logger.Error(err, "could not update restMapper")
+	}
 }
 
 func (a *Agent) stopInformer(key string) {
 	a.logger.Info("All instances deployed by hub removed, stopping informer", "key", key)
-	stopper, ok := a.stoppers[key]
+	stopper, ok := a.stoppers.Get(key)
 	if !ok {
 		a.logger.Info("could not get stopper channel", "key", key)
 	}
 	// close channel
-	close(stopper)
+	close(stopper.(chan struct{}))
 	// remove entries for key
-	delete(a.informers, key)
-	delete(a.listers, key)
-	delete(a.stoppers, key)
+	a.informers.Delete(key)
+	a.listers.Delete(key)
+	a.stoppers.Delete(key)
 }

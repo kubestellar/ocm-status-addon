@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -21,27 +21,34 @@ import (
 )
 
 const (
-	ManagedByPlacementPrefix = "managed-by.kubestellar.io"
+	ManagedByKSLabelKeyPrefix = "managed-by.kubestellar.io"
+	TransportLabelPrefix      = "transport.kubestellar.io"
+	SingletonstatusLabelKey   = "managed-by.kubestellar.io/singletonstatus"
 )
 
 // main reconciliation loop. The returned bool value allows to re-enque even if no errors
-func (a *Agent) reconcile(ctx context.Context, key util.Key) (bool, error) {
-	var obj runtime.Object
-	var err error
+func (a *Agent) reconcile(key util.Key) (bool, error) {
 	isBeingDeleted := false
-	if key.DeletedObject == nil {
-		obj, err = util.GetObjectFromKey(a.listers, key)
-		if err != nil {
+	obj, err := util.GetObjectFromKey(a.listers, key)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
 			// The resource no longer exist, which means it has been deleted.
-			if apierrors.IsNotFound(err) {
-				utilruntime.HandleError(fmt.Errorf("resource '%s' for lister '%s' in work queue no longer exists", key.NamespaceNameKey, key.GvkKey))
-				return true, err
+			a.logger.Info("object in work queue no longer exists", "key", key.NamespaceNameKey, "lister key", key.GvkKey)
+
+			// if this key is related to a delete event, key.DeletedObject != nil should ensure that the workstatus is removed.
+			if key.DeletedObject != nil {
+				isBeingDeleted = true
+				obj = *key.DeletedObject
+			} else {
+				return false, nil
 			}
+		} else if util.IsListerNotFound(err) {
+			// this can be ignored as it happens during a delete
+			a.logger.Info("Lister not found", "message", err.Error())
+			return false, nil
+		} else {
 			return true, err
 		}
-	} else {
-		isBeingDeleted = true
-		obj = *key.DeletedObject
 	}
 
 	// special handling for selected API resources
@@ -51,10 +58,8 @@ func (a *Agent) reconcile(ctx context.Context, key util.Key) (bool, error) {
 		return a.handleAppliedManifestWork(obj, isBeingDeleted)
 	}
 
-	mObj := obj.(metav1.Object)
-	// stop processing if not created by a manifest work and not deleted
-	_, ok := a.trackedObjects.Get(string(mObj.GetUID()))
-	if !ok && !isBeingDeleted {
+	// check if managed by an appliedmanifestwork
+	if !ocm.IsManagedByAppliedManifestWork(obj) {
 		return false, nil
 	}
 
@@ -92,16 +97,14 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 		}
 
 		// check if this applied manifest is already tracked(manifest update)
-		oldinfo, ok := a.trackedAppliedManifests.Get(mObj.GetName())
+		oldinfoIntf, ok := a.trackedAppliedManifests.Get(mObj.GetName())
 		if ok {
+			oldinfo := oldinfoIntf.(util.AppliedManifestInfo)
 			if reflect.DeepEqual(info, oldinfo) {
 				return false, nil
 			}
 			a.logger.Info("processing changes in the applied manifest resources list", "manifest-name", mObj.GetName())
 			addedInfo, removedInfo := util.GetAddedRemovedInfo(oldinfo, info)
-			a.trackedObjects.AddTrackedObjectsUID(addedInfo.ObjectUIDs, aWork.Spec.ManifestWorkName)
-			a.trackedObjects.RemoveTrackedObjectsUID(removedInfo.ObjectUIDs)
-
 			a.trackedAppliedManifests.Set(mObj.GetName(), info)
 			// start/stop the informers if needed
 			go a.startInformers(addedInfo.GVRs, addedInfo.ObjectUIDs)
@@ -111,15 +114,15 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 		}
 
 		// track objects set by manifest & start informers
-		a.trackedObjects.AddTrackedObjectsUID(info.ObjectUIDs, aWork.Spec.ManifestWorkName)
 		a.trackedAppliedManifests.Set(mObj.GetName(), info)
 		go a.startInformers(gvrs, uids)
 	} else {
-		appliedManifestWorkInfo, ok := a.trackedAppliedManifests.Get(mObj.GetName())
+		appliedManifestWorkInfoIntf, ok := a.trackedAppliedManifests.Get(mObj.GetName())
 		if !ok {
 			a.logger.Info("could not find appliedManifestWorkInfo", "key", mObj.GetName())
+			return false, nil
 		}
-		a.trackedObjects.RemoveTrackedObjectsUID(appliedManifestWorkInfo.ObjectUIDs)
+		appliedManifestWorkInfo := appliedManifestWorkInfoIntf.(util.AppliedManifestInfo)
 		a.stopInformers(appliedManifestWorkInfo)
 		a.trackedAppliedManifests.Delete(mObj.GetName())
 	}
@@ -131,15 +134,21 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 	mObj := obj.(metav1.Object)
 	namespace := a.clusterName
 
-	workStatus := &v1alpha1.WorkStatus{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.BuildWorkstatusName(obj),
-			Namespace: namespace,
-		},
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
+
+	aWork, err := ocm.GetAppliedManifestWork(obj, a.listers)
+	if err != nil || aWork == nil {
+		return fmt.Errorf("AppliedManifestWork not found for object with name=%s", mObj.GetName())
+	}
+
+	// init workstatus object
+	workStatus := &v1alpha1.WorkStatus{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      util.BuildWorkstatusName(*aWork, obj),
+		},
+	}
 
 	// delete WorkStatus if exists, when the workload object is deleted
 	if isBeingDeleted {
@@ -149,41 +158,45 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 		}
 		err = a.hubClient.Delete(ctx, workStatus, &client.DeleteOptions{})
 		if err != nil {
-			return err
+			a.logger.Info("workStatus was previously deleted", "workStatus-name", workStatus.Name)
+			return nil
 		}
 		a.logger.Info("workStatus deleted", "workStatus-name", workStatus.Name)
 		return nil
 	}
 
-	name, ok := a.trackedObjects.Get(string(mObj.GetUID()))
-	if !ok {
-		return fmt.Errorf("object not found in tracked objects: uid=%s", string(mObj.GetUID()))
-	}
-
 	// check if WorkStatus exists and if not create it
-	err := a.hubClient.Get(ctx, client.ObjectKeyFromObject(workStatus), workStatus, &client.GetOptions{})
+	err = a.hubClient.Get(ctx, client.ObjectKeyFromObject(workStatus), workStatus, &client.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			// get the manifest work for this workstatus, so that we can set a owner ref
-			manifestWork, err := ocm.GetManifestWork(a.hubClient, name, namespace)
+			manifestWork, err := ocm.GetManifestWork(a.hubClient, aWork.Spec.ManifestWorkName, namespace)
 			if err != nil {
 				return fmt.Errorf("failed to get manifestWork: %w", err)
 			}
 
-			// only update status for KS placement-managed objects
-			if !util.HasPrefixInMap(manifestWork.Labels, ManagedByPlacementPrefix) {
-				a.logger.Info("object not managed by a KS placement, status not updated", "object", name, "namespace", namespace)
+			// only update status for KS-managed (by bindingpolicies here) objects
+			// TODO remove the check for ManagedByKSLabelKeyPrefix after we switch to new transport
+			if !(util.HasPrefixInMap(manifestWork.Labels, ManagedByKSLabelKeyPrefix) || util.HasPrefixInMap(manifestWork.Labels, TransportLabelPrefix)) {
+				a.logger.Info("object not managed by a KS bindingpolicy, status not updated", "object", aWork.Spec.ManifestWorkName, "namespace", namespace)
 				return nil
 			}
 
+			// set the owner reference
 			if err := controllerutil.SetControllerReference(manifestWork, workStatus, a.hubClient.Scheme()); err != nil {
 				return fmt.Errorf("failed to set controller reference: %w", err)
 			}
 
-			// copy labels from manifest work to workstatus - this will be useful for tracking source placement
+			// copy labels from manifest work to workstatus - this will be useful for tracking source bindingpolicy
 			// TODO - need to do this also when labels are updated on manifest work
 			// TODO - there are currently no labels on workstatus but should consider merging in case labels are set
 			workStatus.Labels = manifestWork.Labels
+
+			// copy singleton label from the object, if exist
+			objLabels := mObj.GetLabels()
+			if val, ok := objLabels[SingletonstatusLabelKey]; ok {
+				workStatus.Labels[SingletonstatusLabelKey] = val
+			}
 
 			// set object ref
 			gvk := schema.GroupVersionKind{
@@ -210,6 +223,18 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 			}
 		} else {
 			return err
+		}
+	}
+
+	// patch the workStatus with singleton label if the object was labeled
+	objLabels := mObj.GetLabels()
+	if val, ok := objLabels[SingletonstatusLabelKey]; ok {
+		if _, ok := workStatus.Labels[SingletonstatusLabelKey]; !ok {
+			patchString := fmt.Sprintf(`{"metadata":{"labels":{"%s":"%s"}}}`, SingletonstatusLabelKey, val)
+			err = a.hubClient.Patch(ctx, workStatus, client.RawPatch(types.MergePatchType, []byte(patchString)))
+			if err != nil {
+				return err
+			}
 		}
 	}
 

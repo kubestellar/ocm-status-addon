@@ -61,12 +61,11 @@ type Agent struct {
 	managedDynamicFactory   dynamicinformer.DynamicSharedInformerFactory
 	restMapper              meta.RESTMapper
 	hubClient               client.Client
-	listers                 map[string]*cache.GenericLister
-	informers               map[string]*cache.SharedIndexInformer
-	trackedObjects          util.SafeTrackedObjectstMap
-	trackedAppliedManifests util.SafeAppliedManifestMap
+	listers                 *util.SafeMap
+	informers               *util.SafeMap
+	trackedAppliedManifests util.SafeMap
 	objectsCount            util.SafeUIDMap
-	stoppers                map[string]chan struct{}
+	stoppers                util.SafeMap
 	workqueue               workqueue.RateLimitingInterface
 	initializedTs           time.Time
 }
@@ -95,8 +94,7 @@ func NewAgent(mgr ctrlm.Manager, managedRestConfig *rest.Config, hubRestConfig *
 
 	managedDynamicFactory := dynamicinformer.NewDynamicSharedInformerFactory(managedDynamicClient, 0*time.Minute)
 
-	discoveryClient := managedKubernetesClient.Discovery()
-	groupResources, err := restmapper.GetAPIGroupResources(discoveryClient)
+	restMapper, err := getRestMapper(managedKubernetesClient)
 	if err != nil {
 		return nil, err
 	}
@@ -109,13 +107,12 @@ func NewAgent(mgr ctrlm.Manager, managedRestConfig *rest.Config, hubRestConfig *
 		managedKubernetesClient: managedKubernetesClient,
 		managedDynamicFactory:   managedDynamicFactory,
 		hubClient:               *hubClient,
-		restMapper:              restmapper.NewDiscoveryRESTMapper(groupResources),
-		listers:                 make(map[string]*cache.GenericLister),
-		informers:               make(map[string]*cache.SharedIndexInformer),
-		trackedAppliedManifests: *util.NewSafeAppliedManifestMap(),
+		restMapper:              restMapper,
+		listers:                 util.NewSafeMap(),
+		informers:               util.NewSafeMap(),
+		trackedAppliedManifests: *util.NewSafeMap(),
 		objectsCount:            *util.NewSafeUIDMap(),
-		stoppers:                make(map[string]chan struct{}),
-		trackedObjects:          *util.NewSafeTrackedObjectstMap(),
+		stoppers:                *util.NewSafeMap(),
 		workqueue:               workqueue.NewRateLimitingQueue(ratelimiter),
 	}
 
@@ -157,8 +154,9 @@ func (a *Agent) run(workers int) error {
 
 	// wait for all informers caches to be synced
 	a.logger.Info("Waiting for caches to sync")
-	for _, informer := range a.informers {
-		if ok := cache.WaitForCacheSync(ctx.Done(), (*informer).HasSynced); !ok {
+	for _, informerIntf := range a.informers.ListValues() {
+		informer := informerIntf.(cache.SharedIndexInformer)
+		if ok := cache.WaitForCacheSync(ctx.Done(), (informer).HasSynced); !ok {
 			return fmt.Errorf("failed to wait for caches to sync")
 		}
 	}
@@ -211,7 +209,6 @@ func (a *Agent) enqueueObject(obj interface{}, skipCheckIsDeleted bool) {
 				a.workqueue.Add(key)
 				return
 			}
-			// TODO - return error here
 			a.logger.Error(err, "error getting object from key")
 			return
 		}
@@ -223,13 +220,13 @@ func (a *Agent) enqueueObject(obj interface{}, skipCheckIsDeleted bool) {
 // processNextWorkItem function in order to read and process a message on the
 // workqueue.
 func (a *Agent) runWorker(ctx context.Context) {
-	for a.processNextWorkItem(ctx) {
+	for a.processNextWorkItem() {
 	}
 }
 
 // processNextWorkItem reads a single work item off the workqueue and
 // attempt to process it by calling the reconcile.
-func (a *Agent) processNextWorkItem(ctx context.Context) bool {
+func (a *Agent) processNextWorkItem() bool {
 	obj, shutdown := a.workqueue.Get()
 	if shutdown {
 		return false
@@ -258,7 +255,7 @@ func (a *Agent) processNextWorkItem(ctx context.Context) bool {
 			return nil
 		}
 		// Run the reconciler, passing it the full key or the metav1 Object
-		requeue, err := a.reconcile(ctx, key)
+		requeue, err := a.reconcile(key)
 		if err != nil {
 			// Put the item back on the workqueue to handle any transient errors.
 			a.workqueue.AddRateLimited(obj)
@@ -284,7 +281,7 @@ func (a *Agent) processNextWorkItem(ctx context.Context) bool {
 	return true
 }
 
-func shouldSkipDelete(obj interface{}) bool {
+func shouldSkipDelete(_ interface{}) bool {
 	// logic to determine if should ignore delete based on object GVK
 	return false
 }
@@ -294,4 +291,13 @@ func shouldSkipUpdate(old, new interface{}) bool {
 	newMObj := new.(metav1.Object)
 	// do not enqueue update events for objects that have not changed
 	return newMObj.GetResourceVersion() == oldMObj.GetResourceVersion()
+}
+
+func getRestMapper(clientSet *kubernetes.Clientset) (meta.RESTMapper, error) {
+	discoveryClient := clientSet.Discovery()
+	groupResources, err := restmapper.GetAPIGroupResources(discoveryClient)
+	if err != nil {
+		return nil, err
+	}
+	return restmapper.NewDiscoveryRESTMapper(groupResources), nil
 }

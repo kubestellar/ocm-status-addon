@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/cache"
+	workv1 "open-cluster-management.io/api/work/v1"
 )
 
 const (
@@ -23,8 +24,6 @@ const (
 	PreserveNodePortValue                = "nodeport"
 	UnableToRetrieveCompleteAPIListError = "unable to retrieve the complete list of server APIs"
 
-	AppliedManifestWorkGroup    = "work.open-cluster-management.io"
-	AppliedManifestWorkVersion  = "v1"
 	AppliedManifestWorkKind     = "AppliedManifestWork"
 	AppliedManifestWorkResource = "appliedmanifestworks"
 )
@@ -34,7 +33,7 @@ func IsCRD(o interface{}) bool {
 }
 
 func IsAppliedManifestWork(o interface{}) bool {
-	return matchesGVK(o, AppliedManifestWorkGroup, AppliedManifestWorkVersion, AppliedManifestWorkKind)
+	return matchesGVK(o, workv1.GroupVersion.Group, workv1.GroupVersion.Version, AppliedManifestWorkKind)
 }
 
 func matchesGVK(o interface{}, group, version, kind string) bool {
@@ -108,12 +107,12 @@ func IsBeingDeleted(obj runtime.Object) bool {
 	return mObj.GetDeletionTimestamp() != nil
 }
 
-func GetObjectFromKey(listers map[string]*cache.GenericLister, key Key) (runtime.Object, error) {
-	pLister := listers[key.GvkKey]
-	if pLister == nil {
+func GetObjectFromKey(listers *SafeMap, key Key) (runtime.Object, error) {
+	pListerIntf, _ := listers.Get(key.GvkKey)
+	if pListerIntf == nil {
 		return nil, fmt.Errorf("could not get lister for key: %s", key.GvkKey)
 	}
-	lister := *pLister
+	lister := pListerIntf.(cache.GenericLister)
 
 	namespace, name, err := cache.SplitMetaNamespaceKey(key.NamespaceNameKey)
 	if err != nil {
