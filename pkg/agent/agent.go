@@ -94,8 +94,7 @@ func NewAgent(mgr ctrlm.Manager, managedRestConfig *rest.Config, hubRestConfig *
 
 	managedDynamicFactory := dynamicinformer.NewDynamicSharedInformerFactory(managedDynamicClient, 0*time.Minute)
 
-	discoveryClient := managedKubernetesClient.Discovery()
-	groupResources, err := restmapper.GetAPIGroupResources(discoveryClient)
+	restMapper, err := getRestMapper(managedKubernetesClient)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +107,7 @@ func NewAgent(mgr ctrlm.Manager, managedRestConfig *rest.Config, hubRestConfig *
 		managedKubernetesClient: managedKubernetesClient,
 		managedDynamicFactory:   managedDynamicFactory,
 		hubClient:               *hubClient,
-		restMapper:              restmapper.NewDiscoveryRESTMapper(groupResources),
+		restMapper:              restMapper,
 		listers:                 util.NewSafeMap(),
 		informers:               util.NewSafeMap(),
 		trackedAppliedManifests: *util.NewSafeMap(),
@@ -292,4 +291,13 @@ func shouldSkipUpdate(old, new interface{}) bool {
 	newMObj := new.(metav1.Object)
 	// do not enqueue update events for objects that have not changed
 	return newMObj.GetResourceVersion() == oldMObj.GetResourceVersion()
+}
+
+func getRestMapper(clientSet *kubernetes.Clientset) (meta.RESTMapper, error) {
+	discoveryClient := clientSet.Discovery()
+	groupResources, err := restmapper.GetAPIGroupResources(discoveryClient)
+	if err != nil {
+		return nil, err
+	}
+	return restmapper.NewDiscoveryRESTMapper(groupResources), nil
 }
