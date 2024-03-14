@@ -134,3 +134,7 @@ EOF
 :
 wait-for-cmd '[ $(kubectl --context kind-hub -n cluster1 get workstatus -l app.kubernetes.io/name=nginx-deployment --no-headers | wc -l) == 1 ]'
 
+:
+: -------------------------------------------------------------------------
+: SUCCESS: Multiple Workstatus from one ManifestWork with deletion test passed
+:

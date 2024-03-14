@@ -26,6 +26,12 @@ func (a *Agent) startAppliedManifestWorkInformer(stopper chan struct{}) {
 }
 
 func (a *Agent) startInformers(gvrs []*schema.GroupVersionResource, uids []string) {
+	// update the restmapper
+	var err error
+	a.restMapper, err = getRestMapper(a.managedKubernetesClient)
+	if err != nil {
+		a.logger.Error(err, "could not update restMapper")
+	}
 	for i, gvr := range gvrs {
 
 		gvk, err := a.restMapper.KindFor(*gvr)
@@ -120,6 +126,12 @@ func (a *Agent) stopInformers(appliedManifestInfo util.AppliedManifestInfo) {
 		if count == 0 {
 			a.stopInformer(key)
 		}
+	}
+	// update the restmapper
+	var err error
+	a.restMapper, err = getRestMapper(a.managedKubernetesClient)
+	if err != nil {
+		a.logger.Error(err, "could not update restMapper")
 	}
 }
 

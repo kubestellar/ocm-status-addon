@@ -24,5 +24,6 @@ ${SRC_DIR}/setup-ocm-and-addon.sh
 ${SRC_DIR}/workstatus-patching.sh
 ${SRC_DIR}/workstatus-crud.sh
 ${SRC_DIR}/workstatus-multiple.sh
+${SRC_DIR}/workstatus-new-crd.sh
 ${SRC_DIR}/workstatus-stress-test.sh
 
