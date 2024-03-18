@@ -63,6 +63,7 @@ spec:
           status:
             description: Manifest represents a resource to be deployed
             type: object
+            x-kubernetes-map-type: atomic
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
@@ -292,8 +293,8 @@ spec:
         - controller
         env:
         - name: STATUS_ADDDON_IMAGE_NAME
-          value: ko.local/ocm-status-addon:cf3479e
-        image: ko.local/ocm-status-addon:cf3479e
+          value: ko.local/ocm-status-addon:to_be_replaced
+        image: ko.local/ocm-status-addon:to_be_replaced
         imagePullPolicy: IfNotPresent
         name: status-controller
         resources:

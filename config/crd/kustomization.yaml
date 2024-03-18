@@ -3,4 +3,13 @@
 # It should be run by config/default
 resources:
 - bases/control.kubestellar.io_workstatuses.yaml
+
+patchesJson6902:
+  - path: patch.yaml
+    target:
+       group: apiextensions.k8s.io
+       version: v1
+       kind: CustomResourceDefinition
+       name: workstatuses.control.kubestellar.io
+
 #+kubebuilder:scaffold:crdkustomizeresource
