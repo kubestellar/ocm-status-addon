@@ -63,8 +63,8 @@ func (a *Agent) reconcile(key util.Key) (bool, error) {
 		return false, nil
 	}
 
-	a.logger.Info("going to update status:", "object", util.GenerateObjectInfoString(obj))
-	if err := a.updateWorkStatus(obj, isBeingDeleted); err != nil {
+	// handle work status
+	if err := a.handleWorkStatus(obj, isBeingDeleted); err != nil {
 		return false, err
 	}
 
@@ -130,9 +130,11 @@ func (a *Agent) handleAppliedManifestWork(obj runtime.Object, isBeingDeleted boo
 	return false, nil
 }
 
-func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error {
+func (a *Agent) handleWorkStatus(obj runtime.Object, isBeingDeleted bool) error {
 	mObj := obj.(metav1.Object)
 	namespace := a.clusterName
+
+	a.logger.Info("handling workstatus for", "object", util.GenerateObjectInfoString(obj))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
@@ -178,7 +180,7 @@ func (a *Agent) updateWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 			// only update status for KS-managed (by bindingpolicies here) objects
 			// TODO remove the check for ManagedByKSLabelKeyPrefix after we switch to new transport
 			if !(util.HasPrefixInMap(manifestWork.Labels, ManagedByKSLabelKeyPrefix) || util.HasPrefixInMap(manifestWork.Labels, TransportLabelPrefix)) {
-				a.logger.Info("object not managed by a KS bindingpolicy, status not updated", "object", aWork.Spec.ManifestWorkName, "namespace", namespace)
+				a.logger.Info("object not managed by a KS bindingpolicy, nothing to do", "object", aWork.Spec.ManifestWorkName, "namespace", namespace)
 				return nil
 			}
 
