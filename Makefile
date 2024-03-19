@@ -176,11 +176,13 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy manager to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	kubectl --context ${DEFAULT_IMBS_CONTEXT} apply -f config/crd/bases/control.kubestellar.io_workstatuses.yaml
 	$(KUSTOMIZE) build config/default | kubectl --context ${DEFAULT_IMBS_CONTEXT} apply -f -
 
 .PHONY: undeploy
 undeploy: ## Undeploy manager from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | kubectl --context ${DEFAULT_IMBS_CONTEXT} delete --ignore-not-found=$(ignore-not-found) -f -
+	kubectl --context ${DEFAULT_IMBS_CONTEXT} delete --ignore-not-found=$(ignore-not-found) -f config/crd/bases/control.kubestellar.io_workstatuses.yaml
 
 .PHONY: chart
 chart: manifests kustomize
