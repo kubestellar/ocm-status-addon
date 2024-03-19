@@ -186,17 +186,19 @@ undeploy: ## Undeploy manager from the K8s cluster specified in ~/.kube/config. 
 chart: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(shell echo ${IMG} | sed 's/\(:.*\)v/\1/')
 	$(KUSTOMIZE) build config/default > chart/templates/operator.yaml
+	@mkdir -p chart/crds
+	@cp config/crd/bases/*.yaml chart/crds/
 
 # this is used for local testing - since the image is locally built it needs to be loaded also on the WEC cluster(s)
 .PHONY: kind-load-image
 kind-load-image:
 	@for c in $(CLUSTERS); do \
 		kind load docker-image ${IMG} --name $$c; \
-	done 
+	done
 
 .PHONY: install-local-chart
 install-local-chart: kind-load-image chart
-	helm upgrade --kube-context ${DEFAULT_IMBS_CONTEXT} --install status-addon -n open-cluster-management chart/ 
+	helm upgrade --kube-context ${DEFAULT_IMBS_CONTEXT} --install status-addon -n open-cluster-management chart/
 
 ##@ Build Dependencies
 
@@ -214,7 +216,7 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 CONTROLLER_TOOLS_VERSION ?= v0.14.0
 
 .PHONY: kustomize
-kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. 
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
 	test -s $(LOCALBIN)/kustomize || GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v5@latest
 
