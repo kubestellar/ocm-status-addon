@@ -6,7 +6,7 @@ kind: Kustomization
 images:
 - name: controller
   newName: ko.local/ocm-status-addon
-  newTag: ce5c42d
+  newTag: to_be_replaced
 
 replacements:
 - source:
