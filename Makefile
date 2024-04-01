@@ -189,7 +189,7 @@ chart: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(shell echo ${IMG} | sed 's/\(:.*\)v/\1/')
 	$(KUSTOMIZE) build config/default > chart/templates/operator.yaml
 	@mkdir -p chart/crds
-	@cp config/crd/bases/*.yaml chart/crds/
+	$(KUSTOMIZE) build config/crd > chart/crds/crds.yaml
 
 # this is used for local testing - since the image is locally built it needs to be loaded also on the WEC cluster(s)
 .PHONY: kind-load-image
