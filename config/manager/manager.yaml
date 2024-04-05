@@ -31,12 +31,12 @@ spec:
         args:
         - |
           echo -n "Waiting for managedclusteraddons CRD"
-          while [ "$(kubectl get crd clustermanagementaddons.addon.open-cluster-management.io 2> /dev/null)" == "" ] ; do
+          while ! kubectl get clustermanagementaddons.addon.open-cluster-management.io &> /dev/null ; do
             echo -n "."
-            sleep 1
+            sleep 5
           done
           echo -e "\033[0;32m\xE2\x9C\x94\033[0m"
-          echo "Creating addon-status CR:"
+          echo "Creating addon-status object:"
           kubectl apply -f - <<EOF
           apiVersion: addon.open-cluster-management.io/v1alpha1
           kind: ClusterManagementAddOn
