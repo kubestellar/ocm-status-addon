@@ -15,5 +15,6 @@ namePrefix: addon-
 #    someName: someValue
 
 resources:
+- ../crd
 - ../rbac
 - ../manager
