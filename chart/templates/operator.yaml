@@ -215,6 +215,33 @@ spec:
       labels:
         app: status-controller
     spec:
+      initContainers:
+      - name: create-crd
+        image: quay.io/kubestellar/kubectl:1.29.3
+        command: ['sh', '-c']
+        args:
+        - |
+          echo -n "Waiting for managedclusteraddons CRD"
+          while ! kubectl get clustermanagementaddons.addon.open-cluster-management.io &> /dev/null ; do
+            echo -n "."
+            sleep 5
+          done
+          echo -e "\033[0;32m\xE2\x9C\x94\033[0m"
+          echo "Creating addon-status object:"
+          kubectl apply -f - <<EOF
+          apiVersion: addon.open-cluster-management.io/v1alpha1
+          kind: ClusterManagementAddOn
+          metadata:
+            name: addon-status
+            namespace: open-cluster-management
+          spec:
+            addOnMeta:
+              description: status addon provides full status on applied resources
+              displayName: addon-status
+            supportedConfigs:
+            - group: addon.open-cluster-management.io
+              resource: addondeploymentconfigs
+          EOF
       containers:
       - args:
         - controller
@@ -239,16 +266,3 @@ spec:
       securityContext:
         runAsNonRoot: true
       serviceAccountName: addon-status-sa
----
-apiVersion: addon.open-cluster-management.io/v1alpha1
-kind: ClusterManagementAddOn
-metadata:
-  name: addon-status
-  namespace: open-cluster-management
-spec:
-  addOnMeta:
-    description: status addon provides full status on applied resources
-    displayName: addon-status
-  supportedConfigs:
-  - group: addon.open-cluster-management.io
-    resource: addondeploymentconfigs

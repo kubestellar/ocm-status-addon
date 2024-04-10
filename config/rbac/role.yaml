@@ -31,8 +31,11 @@ rules:
   resources:
   - clustermanagementaddons
   verbs:
+  - create
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - addon.open-cluster-management.io
