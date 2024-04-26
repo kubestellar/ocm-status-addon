@@ -124,8 +124,8 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: test
-test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
+test: manifests generate fmt vet ## Run tests.
+	go test ./... -coverprofile cover.out
 
 ##@ Build
 
@@ -185,18 +185,20 @@ undeploy: ## Undeploy manager from the K8s cluster specified in ~/.kube/config. 
 .PHONY: chart
 chart: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(shell echo ${IMG} | sed 's/\(:.*\)v/\1/')
-	$(KUSTOMIZE) build config/default > chart/templates/operator.yaml
+	@mkdir -p chart/crds
+	$(KUSTOMIZE) build config/default | yq eval 'select(.kind != "CustomResourceDefinition")' > chart/templates/operator.yaml
+	$(KUSTOMIZE) build config/default | yq eval 'select(.kind == "CustomResourceDefinition")' > chart/crds/crds.yaml
 
 # this is used for local testing - since the image is locally built it needs to be loaded also on the WEC cluster(s)
 .PHONY: kind-load-image
 kind-load-image:
 	@for c in $(CLUSTERS); do \
 		kind load docker-image ${IMG} --name $$c; \
-	done 
+	done
 
 .PHONY: install-local-chart
 install-local-chart: kind-load-image chart
-	helm upgrade --kube-context ${DEFAULT_IMBS_CONTEXT} --install status-addon -n open-cluster-management chart/ 
+	helm upgrade --kube-context ${DEFAULT_IMBS_CONTEXT} --install status-addon -n open-cluster-management chart/
 
 ##@ Build Dependencies
 
@@ -214,9 +216,9 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 CONTROLLER_TOOLS_VERSION ?= v0.14.0
 
 .PHONY: kustomize
-kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. 
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	test -s $(LOCALBIN)/kustomize || GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v5@latest
+	test -s $(LOCALBIN)/kustomize || GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v5@v5.3.0
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary. If wrong version is installed, it will be overwritten.
