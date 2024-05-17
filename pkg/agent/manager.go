@@ -24,6 +24,7 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/component-base/version"
@@ -38,6 +39,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	v1alpha1 "github.com/kubestellar/ocm-status-addon/api/v1alpha1"
+	clientopts "github.com/kubestellar/ocm-status-addon/pkg/client-options"
 )
 
 var (
@@ -79,11 +81,18 @@ type AgentOptions struct {
 	SpokeClusterName     string
 	AddonName            string
 	AddonNamespace       string
+	LocalLimits          clientopts.ClientLimits[*pflag.FlagSet]
+	HubLimits            clientopts.ClientLimits[*pflag.FlagSet]
 }
 
 // NewAgentOptions returns the flags with default value set
 func NewAgentOptions(addonName string) *AgentOptions {
-	return &AgentOptions{ZapOpts: zap.Options{Development: true}, AddonName: addonName}
+	return &AgentOptions{
+		ZapOpts:     zap.Options{Development: true},
+		AddonName:   addonName,
+		LocalLimits: clientopts.NewClientLimits[*pflag.FlagSet]("local", "accessing the local cluster"),
+		HubLimits:   clientopts.NewClientLimits[*pflag.FlagSet]("hub", "accessing the hub"),
+	}
 }
 
 func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
@@ -102,6 +111,8 @@ func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 	flag.BoolVar(&o.EnableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	o.LocalLimits.AddFlags(flags)
+	o.HubLimits.AddFlags(flags)
 }
 
 func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) error {
@@ -112,6 +123,7 @@ func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) er
 	// setup manager
 	// manager here is mainly used for leader election and health checks
 	managedConfig := ctrl.GetConfigOrDie()
+	managedConfig = o.LocalLimits.LimitConfig(managedConfig)
 	mgr, err := ctrl.NewManager(managedConfig, ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     o.MetricsAddr,
@@ -150,6 +162,7 @@ func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) er
 		setupLog.Error(err, "could not build resr.Config")
 		os.Exit(1)
 	}
+	hubConfig = o.HubLimits.LimitConfig(hubConfig)
 
 	// start the agent
 	agent, err := NewAgent(mgr, managedConfig, hubConfig, o.SpokeClusterName, o.AddonName)
