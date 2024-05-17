@@ -71,6 +71,7 @@ func NewAgentCommand(addonName string) *cobra.Command {
 
 // AgentOptions defines the flags for workload agent
 type AgentOptions struct {
+	ZapOpts              zap.Options
 	MetricsAddr          string
 	EnableLeaderElection bool
 	ProbeAddr            string
@@ -82,11 +83,14 @@ type AgentOptions struct {
 
 // NewAgentOptions returns the flags with default value set
 func NewAgentOptions(addonName string) *AgentOptions {
-	return &AgentOptions{AddonName: addonName}
+	return &AgentOptions{ZapOpts: zap.Options{Development: true}, AddonName: addonName}
 }
 
 func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
+	forZap := flag.NewFlagSet("agent", flag.ExitOnError)
+	o.ZapOpts.BindFlags(forZap)
+	flags.AddGoFlagSet(forZap)
 	// This command only supports reading from config
 	flags.StringVar(&o.HubKubeconfigFile, "hub-kubeconfig", o.HubKubeconfigFile,
 		"Location of kubeconfig file to connect to hub cluster.")
@@ -101,13 +105,9 @@ func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 }
 
 func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) error {
-	opts := zap.Options{
-		Development: true,
-	}
-	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&o.ZapOpts)))
 
 	// setup manager
 	// manager here is mainly used for leader election and health checks
