@@ -28,6 +28,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/component-base/version"
+	"k8s.io/klog/v2"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -113,6 +114,7 @@ func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 
 func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) error {
 	flag.Parse()
+	ctrl.SetLogger(klog.FromContext(ctx))
 
 	// setup manager
 	// manager here is mainly used for leader election and health checks
