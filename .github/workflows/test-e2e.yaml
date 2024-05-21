@@ -59,9 +59,21 @@ jobs:
         if: always()
         run: kubectl --context kind-hub get managedclusteraddons -A
 
+      - name: Show Deployment objects in hub
+        if: always()
+        run: kubectl --context kind-hub get deploy -A
+
+      - name: Show controller
+        if: always()
+        run: kubectl --context kind-hub get deploy -n open-cluster-management addon-status-controller -o yaml
+
       - name: Show manifestworks in hub
         if: always()
         run: kubectl --context kind-hub get manifestwork -oyaml -A
+
+      - name: Show agent
+        if: always()
+        run: kubectl --context kind-cluster1 get pods -n open-cluster-management-agent-addon -o yaml
 
       - name: Show workloads in cluster1
         if: always()
