@@ -11,6 +11,7 @@ import (
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/rest"
 	utilflag "k8s.io/component-base/cli/flag"
+	featuregate "k8s.io/component-base/featuregate"
 	logs "k8s.io/component-base/logs/api/v1"
 	"k8s.io/klog/v2"
 	addonv1alpha1client "open-cluster-management.io/api/client/addon/clientset/versioned"
@@ -30,19 +31,31 @@ func main() {
 	pflag.CommandLine.SetNormalizeFunc(utilflag.WordSepNormalizeFunc)
 	pflag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 
-	logs.AddFlags(logs.NewLoggingConfiguration(), pflag.CommandLine)
+	features := featuregate.NewFeatureGate()
+	err := features.Add(map[featuregate.Feature]featuregate.FeatureSpec{
+		logs.ContextualLogging: {
+			Default:    true,
+			PreRelease: featuregate.Alpha}})
+	if err != nil {
+		panic(err)
+	}
+	logConfig := logs.NewLoggingConfiguration()
+	logs.AddFlags(logConfig, pflag.CommandLine)
 
-	command := newCommand()
+	command := newCommand(logConfig, features)
 	if err := command.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 }
 
-func newCommand() *cobra.Command {
+func newCommand(logConfig *logs.LoggingConfiguration, features featuregate.FeatureGate) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "addon",
 		Short: "status addon",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return logs.ValidateAndApply(logConfig, features)
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := cmd.Help(); err != nil {
 				fmt.Fprintf(os.Stderr, "%v\n", err)
