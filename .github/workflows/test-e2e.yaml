@@ -61,11 +61,18 @@ jobs:
 
       - name: Show Deployment objects in hub
         if: always()
-        run: kubectl --context kind-hub get deploy -A
+        run: |
+          kubectl --context kind-hub get deploy -A
+          echo $'\n================================================================\n'
+          kubectl --context kind-hub get deploy -A -o yaml
 
-      - name: Show controller
+      - name: Show Pod objects in the hub
         if: always()
-        run: kubectl --context kind-hub get deploy -n open-cluster-management addon-status-controller -o yaml
+        run: kubectl --context kind-hub get pods -A
+
+      - name: Show controller log
+        if: always()
+        run: kubectl --context kind-hub logs -n open-cluster-management deployment/addon-status-controller
 
       - name: Show manifestworks in hub
         if: always()
