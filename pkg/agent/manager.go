@@ -95,8 +95,6 @@ func NewAgentOptions(addonName string) *AgentOptions {
 
 func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 	flags := cmd.Flags()
-	forZap := flag.NewFlagSet("agent", flag.ExitOnError)
-	flags.AddGoFlagSet(forZap)
 	// This command only supports reading from config
 	flags.StringVar(&o.HubKubeconfigFile, "hub-kubeconfig", o.HubKubeconfigFile,
 		"Location of kubeconfig file to connect to hub cluster.")
@@ -113,7 +111,6 @@ func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 }
 
 func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) error {
-	flag.Parse()
 	ctrl.SetLogger(klog.FromContext(ctx))
 
 	// setup manager
