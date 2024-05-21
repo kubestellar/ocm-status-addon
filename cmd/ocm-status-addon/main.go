@@ -14,7 +14,6 @@ import (
 	featuregate "k8s.io/component-base/featuregate"
 	logs "k8s.io/component-base/logs/api/v1"
 	"k8s.io/klog/v2"
-	addonv1alpha1client "open-cluster-management.io/api/client/addon/clientset/versioned"
 
 	"open-cluster-management.io/addon-framework/pkg/addonfactory"
 	"open-cluster-management.io/addon-framework/pkg/addonmanager"
@@ -22,6 +21,9 @@ import (
 	cmdfactory "open-cluster-management.io/addon-framework/pkg/cmd/factory"
 	"open-cluster-management.io/addon-framework/pkg/utils"
 	"open-cluster-management.io/addon-framework/pkg/version"
+	addonapiv1alpha1 "open-cluster-management.io/api/addon/v1alpha1"
+	addonv1alpha1client "open-cluster-management.io/api/client/addon/clientset/versioned"
+	clusterv1 "open-cluster-management.io/api/cluster/v1"
 
 	"github.com/kubestellar/ocm-status-addon/pkg/agent"
 	"github.com/kubestellar/ocm-status-addon/pkg/controller"
@@ -76,17 +78,46 @@ func newCommand(logConfig *logs.LoggingConfiguration, features featuregate.Featu
 	return cmd
 }
 
+type agentController struct {
+	NameToWrapped map[string]*pflag.Flag
+}
+
 func newControllerCommand() *cobra.Command {
+	ac := agentController{NameToWrapped: make(map[string]*pflag.Flag)}
+	agentLogConfig := logs.NewLoggingConfiguration()
+	agentUserOptions := agent.NewAgentUserOptions()
+	flagsOnAgent := pflag.NewFlagSet("on-agent", pflag.ContinueOnError)
+	flagsFromAgent := pflag.NewFlagSet("from-agent", pflag.ContinueOnError)
+	logs.AddFlags(agentLogConfig, flagsOnAgent)
+	agentUserOptions.AddToFlagSet(flagsFromAgent)
 	cmd := cmdfactory.
-		NewControllerCommandConfig("status-addon-controller", version.Get(), runController).
+		NewControllerCommandConfig("status-addon-controller", version.Get(), ac.runController).
 		NewCommand()
 	cmd.Use = "controller"
 	cmd.Short = "Start the addon controller"
-
+	for connector, flagSet := range map[string]*pflag.FlagSet{"on": flagsOnAgent, "from": flagsFromAgent} {
+		flagSet.VisitAll(func(flag *pflag.Flag) {
+			wrapped := *flag
+			wrapped.Name = "agent-" + flag.Name
+			wrapped.Usage = flag.Usage + " " + connector + " the agent"
+			wrapped.Shorthand = ""
+			cmd.PersistentFlags().AddFlag(&wrapped)
+			ac.NameToWrapped[flag.Name] = &wrapped
+		})
+	}
 	return cmd
 }
 
-func runController(ctx context.Context, kubeConfig *rest.Config) error {
+func (ac *agentController) getPropagatedSettings(*clusterv1.ManagedCluster, *addonapiv1alpha1.ManagedClusterAddOn) (addonfactory.Values, error) {
+	settings := []string{}
+	for flagName, wrapped := range ac.NameToWrapped {
+		setting := "--" + flagName + "=" + wrapped.Value.String()
+		settings = append(settings, setting)
+	}
+	return map[string]any{"PropagatedSettings": settings}, nil
+}
+
+func (ac *agentController) runController(ctx context.Context, kubeConfig *rest.Config) error {
 	addonClient, err := addonv1alpha1client.NewForConfig(kubeConfig)
 	if err != nil {
 		return err
@@ -112,6 +143,7 @@ func runController(ctx context.Context, kubeConfig *rest.Config) error {
 		WithConfigGVRs(utils.AddOnDeploymentConfigGVR).
 		WithGetValuesFuncs(
 			controller.GetDefaultValues,
+			ac.getPropagatedSettings,
 			addonfactory.GetAddOnDeploymentConfigValues(
 				utils.NewAddOnDeploymentConfigGetter(addonClient),
 				addonfactory.ToAddOnDeploymentConfigValues,

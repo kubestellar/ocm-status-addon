@@ -62,6 +62,9 @@ spec:
           - "--hub-kubeconfig=/var/run/hub/kubeconfig"
           - "--cluster-name={{ .ClusterName }}"
           - "--addon-namespace={{ .AddonInstallNamespace }}"
+{{- if .PropagatedSettings}} {{- range $setting := .PropagatedSettings }}
+          - "{{ $setting }}"
+{{- end }} {{- end }}
         volumeMounts:
           - name: hub-config
             mountPath: /var/run/hub

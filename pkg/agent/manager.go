@@ -80,21 +80,30 @@ type AgentOptions struct {
 	SpokeClusterName     string
 	AddonName            string
 	AddonNamespace       string
-	LocalLimits          clientopts.ClientLimits[*pflag.FlagSet]
-	HubLimits            clientopts.ClientLimits[*pflag.FlagSet]
+	AgentUserOptions
+}
+
+type AgentUserOptions struct {
+	LocalLimits clientopts.ClientLimits[*pflag.FlagSet]
+	HubLimits   clientopts.ClientLimits[*pflag.FlagSet]
 }
 
 // NewAgentOptions returns the flags with default value set
 func NewAgentOptions(addonName string) *AgentOptions {
 	return &AgentOptions{
-		AddonName:   addonName,
+		AddonName:        addonName,
+		AgentUserOptions: NewAgentUserOptions()}
+}
+
+func NewAgentUserOptions() AgentUserOptions {
+	return AgentUserOptions{
 		LocalLimits: clientopts.NewClientLimits[*pflag.FlagSet]("local", "accessing the local cluster"),
 		HubLimits:   clientopts.NewClientLimits[*pflag.FlagSet]("hub", "accessing the hub"),
 	}
 }
 
 func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
-	flags := cmd.Flags()
+	flags := cmd.PersistentFlags()
 	// This command only supports reading from config
 	flags.StringVar(&o.HubKubeconfigFile, "hub-kubeconfig", o.HubKubeconfigFile,
 		"Location of kubeconfig file to connect to hub cluster.")
@@ -106,6 +115,10 @@ func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 	flag.BoolVar(&o.EnableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	o.AgentUserOptions.AddToFlagSet(flags)
+}
+
+func (o *AgentUserOptions) AddToFlagSet(flags *pflag.FlagSet) {
 	o.LocalLimits.AddFlags(flags)
 	o.HubLimits.AddFlags(flags)
 }
