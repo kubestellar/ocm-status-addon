@@ -13,6 +13,7 @@ import (
 	utilflag "k8s.io/component-base/cli/flag"
 	featuregate "k8s.io/component-base/featuregate"
 	logs "k8s.io/component-base/logs/api/v1"
+	_ "k8s.io/component-base/logs/json/register"
 	"k8s.io/klog/v2"
 	addonv1alpha1client "open-cluster-management.io/api/client/addon/clientset/versioned"
 
@@ -33,9 +34,11 @@ func main() {
 
 	features := featuregate.NewFeatureGate()
 	err := features.Add(map[featuregate.Feature]featuregate.FeatureSpec{
-		logs.ContextualLogging: {
-			Default:    true,
-			PreRelease: featuregate.Alpha}})
+		logs.ContextualLogging: {Default: true, PreRelease: featuregate.Alpha},
+
+		logs.LoggingAlphaOptions: {Default: false, PreRelease: featuregate.Alpha},
+		logs.LoggingBetaOptions:  {Default: true, PreRelease: featuregate.Beta},
+	})
 	if err != nil {
 		panic(err)
 	}
