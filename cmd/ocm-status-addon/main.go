@@ -111,8 +111,10 @@ func newControllerCommand() *cobra.Command {
 func (ac *agentController) getPropagatedSettings(*clusterv1.ManagedCluster, *addonapiv1alpha1.ManagedClusterAddOn) (addonfactory.Values, error) {
 	settings := []string{}
 	for flagName, wrapped := range ac.NameToWrapped {
-		setting := "--" + flagName + "=" + wrapped.Value.String()
-		settings = append(settings, setting)
+		if wrapped.Changed {
+			setting := "--" + flagName + "=" + wrapped.Value.String()
+			settings = append(settings, setting)
+		}
 	}
 	return map[string]any{"PropagatedSettings": settings}, nil
 }
