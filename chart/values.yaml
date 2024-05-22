@@ -3,9 +3,15 @@
 # Declare variables to be passed into your templates.
 
 # Set the controller verbosity
+<<<<<<< HEAD
 controller:
   verbosity: 2
 
 # Set the agent verbosity
 agent:
   verbosity: 2
+=======
+verbosity:
+  controller: 2
+  agent: 2
+>>>>>>> bc24c0b (Add agent verbosity)
