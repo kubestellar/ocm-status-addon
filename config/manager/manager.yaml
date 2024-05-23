@@ -69,7 +69,7 @@ spec:
             memory: 64Mi
         env:
         - name: STATUS_ADDDON_IMAGE_NAME
-          value: STATUS_ADDDON_IMAGE_NAME_PLACEHOLDER
+          value: replaced by kustomization.yaml
         args:
         - "controller"
         - --v={{.Values.controller.verbosity}}
