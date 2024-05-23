@@ -17,11 +17,11 @@ import (
 func NewClient(config *rest.Config) (*client.Client, error) {
 	scheme := runtime.NewScheme()
 
-	// httpClient, err := rest.HTTPClientFor(config)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
+	httpClient, err := rest.HTTPClientFor(config)
+	if err != nil {
+		return nil, err
+	}
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config, httpClient)
 	if err != nil {
 		return nil, err
 	}
