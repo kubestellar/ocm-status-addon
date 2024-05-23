@@ -20,10 +20,7 @@ IMG ?= ${KO_DOCKER_REPO}/${CMD_NAME}:${IMAGE_TAG}
 export STATUS_ADDDON_IMAGE_NAME ?= ${IMG}
 
 # clusters used for dev/test
-CLUSTERS ?= kubeflex cluster1 cluster2
-
-# default kind hosting cluster name
-KIND_HOSTING_CLUSTER ?= kubeflex
+CLUSTERS ?= hub cluster1 cluster2
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.26.1
@@ -174,9 +171,8 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 	$(KUSTOMIZE) build config/crd | kubectl --context ${DEFAULT_IMBS_CONTEXT} delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy
-deploy: manifests kustomize ## Deploy manager to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | kubectl --context ${DEFAULT_IMBS_CONTEXT} apply -f -
+deploy: chart ## Deploy manager to the K8s cluster specified in ~/.kube/config.
+	helm upgrade --kube-context ${DEFAULT_IMBS_CONTEXT} --install status-addon -n open-cluster-management chart/
 
 .PHONY: undeploy
 undeploy: ## Undeploy manager from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
