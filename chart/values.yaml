@@ -7,5 +7,12 @@ controller:
   verbosity: 2
 
 # Set the agent verbosity
-agent:
-  verbosity: 2
+agent: {}
+  # hub-burst int Allowed burst in requests/sec for accessing the hub from the agent (default 10)
+  # hub-qps float Max average requests/sec for accessing the hub from the agent (default 5)
+  # local-burst int Allowed burst in requests/sec for accessing the local cluster from the agent (default 10)
+  # local-qps float Max average requests/sec for accessing the local cluster from the agent (default 5)
+  # log-flush-frequency duration Maximum number of seconds between log flushes on the agent (default 5s)
+  # logging-format string Sets the log format. Permitted formats: "json" (gated by LoggingBetaOptions), "text". on the agent (default "text")
+  # v Level number for the log level verbosity on the agent
+  # vmodule pattern=N,... comma-separated list of pattern=N settings for file-filtered logging (only works for text log format) on the agent

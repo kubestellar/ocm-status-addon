@@ -51,5 +51,5 @@ kubectl --context kind-hub get managedclusters
 :
 make ko-local-build
 make kind-load-image CLUSTERS="hub cluster1"
-make deploy DEFAULT_IMBS_CONTEXT=kind-hub
+make deploy DEFAULT_IMBS_CONTEXT=kind-hub CHART_INSTALL_EXTRA_ARGS="--set agent.v=2 --set agent.hub_burst=7"
 git restore config/manager/kustomization.yaml # restore newTag
