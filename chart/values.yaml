@@ -4,14 +4,20 @@
 
 # Set the controller verbosity
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3cd0aab (transpose)
 controller:
   verbosity: 2
 
 # Set the agent verbosity
 agent:
   verbosity: 2
+<<<<<<< HEAD
 =======
 verbosity:
   controller: 2
   agent: 2
 >>>>>>> bc24c0b (Add agent verbosity)
+=======
+>>>>>>> 3cd0aab (transpose)
