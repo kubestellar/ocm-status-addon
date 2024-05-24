@@ -18,7 +18,6 @@ package agent
 
 import (
 	"context"
-	"flag"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -40,6 +39,7 @@ import (
 
 	v1alpha1 "github.com/kubestellar/ocm-status-addon/api/v1alpha1"
 	clientopts "github.com/kubestellar/ocm-status-addon/pkg/client-options"
+	"github.com/kubestellar/ocm-status-addon/pkg/observability"
 )
 
 var (
@@ -73,7 +73,7 @@ func NewAgentCommand(addonName string) *cobra.Command {
 
 // AgentOptions defines the flags for workload agent
 type AgentOptions struct {
-	MetricsAddr          string
+	ObservabilityOptions observability.ObservabilityOptions[*pflag.FlagSet]
 	EnableLeaderElection bool
 	ProbeAddr            string
 	HubKubeconfigFile    string
@@ -91,8 +91,16 @@ type AgentUserOptions struct {
 // NewAgentOptions returns the flags with default value set
 func NewAgentOptions(addonName string) *AgentOptions {
 	return &AgentOptions{
-		AddonName:        addonName,
-		AgentUserOptions: NewAgentUserOptions()}
+		ObservabilityOptions: NewObservabilityOptions(),
+		AddonName:            addonName,
+		AgentUserOptions:     NewAgentUserOptions()}
+}
+
+func NewObservabilityOptions() observability.ObservabilityOptions[*pflag.FlagSet] {
+	return observability.ObservabilityOptions[*pflag.FlagSet]{
+		MetricsBindAddr: ":8080",
+		PprofBindAddr:   ":8082",
+	}
 }
 
 func NewAgentUserOptions() AgentUserOptions {
@@ -104,23 +112,23 @@ func NewAgentUserOptions() AgentUserOptions {
 
 func (o *AgentOptions) AddFlags(cmd *cobra.Command) {
 	flags := cmd.PersistentFlags()
+	o.ObservabilityOptions.AddToFlagSet(flags)
 	// This command only supports reading from config
 	flags.StringVar(&o.HubKubeconfigFile, "hub-kubeconfig", o.HubKubeconfigFile,
 		"Location of kubeconfig file to connect to hub cluster.")
 	flags.StringVar(&o.SpokeClusterName, "cluster-name", o.SpokeClusterName, "Name of spoke cluster.")
 	flags.StringVar(&o.AddonNamespace, "addon-namespace", o.AddonNamespace, "Installation namespace of addon.")
 	flags.StringVar(&o.AddonName, "addon-name", o.AddonName, "name of the addon.")
-	flag.StringVar(&o.MetricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&o.ProbeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&o.EnableLeaderElection, "leader-elect", false,
+	flags.StringVar(&o.ProbeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flags.BoolVar(&o.EnableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	o.AgentUserOptions.AddToFlagSet(flags)
 }
 
 func (o *AgentUserOptions) AddToFlagSet(flags *pflag.FlagSet) {
-	o.LocalLimits.AddFlags(flags)
-	o.HubLimits.AddFlags(flags)
+	o.LocalLimits.AddToFlagSet(flags)
+	o.HubLimits.AddToFlagSet(flags)
 }
 
 func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) error {
@@ -132,7 +140,8 @@ func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) er
 	managedConfig = o.LocalLimits.LimitConfig(managedConfig)
 	mgr, err := ctrl.NewManager(managedConfig, ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     o.MetricsAddr,
+		MetricsBindAddress:     o.ObservabilityOptions.MetricsBindAddr,
+		PprofBindAddress:       o.ObservabilityOptions.PprofBindAddr,
 		Port:                   9443,
 		HealthProbeBindAddress: o.ProbeAddr,
 		LeaderElection:         o.EnableLeaderElection,

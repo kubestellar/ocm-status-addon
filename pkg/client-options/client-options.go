@@ -58,13 +58,13 @@ func NewClientOptions[FS FlagSet](name string, description string) *ClientOption
 	}
 }
 
-func (opts *ClientLimits[FS]) AddFlags(flags FS) {
+func (opts *ClientLimits[FS]) AddToFlagSet(flags FS) {
 	flags.Float64Var(&opts.QPS, opts.name+"-qps", opts.QPS, "Max average requests/sec for "+opts.description)
 	flags.IntVar(&opts.Burst, opts.name+"-burst", opts.Burst, "Allowed burst in requests/sec for "+opts.description)
 }
 
-func (opts *ClientOptions[FS]) AddFlags(flags FS) {
-	opts.ClientLimits.AddFlags(flags)
+func (opts *ClientOptions[FS]) AddToFlagSet(flags FS) {
+	opts.ClientLimits.AddToFlagSet(flags)
 	flags.StringVar(&opts.loadingRules.ExplicitPath, opts.name+"-kubeconfig", opts.loadingRules.ExplicitPath, "Path to the kubeconfig file to use for "+opts.description)
 	flags.StringVar(&opts.overrides.CurrentContext, opts.name+"-context", opts.overrides.CurrentContext, "The name of the kubeconfig context to use for "+opts.description)
 	flags.StringVar(&opts.overrides.Context.AuthInfo, opts.name+"-user", opts.overrides.Context.AuthInfo, "The name of the kubeconfig user to use for "+opts.description)

@@ -28,6 +28,7 @@ import (
 
 	"github.com/kubestellar/ocm-status-addon/pkg/agent"
 	"github.com/kubestellar/ocm-status-addon/pkg/controller"
+	"github.com/kubestellar/ocm-status-addon/pkg/observability"
 )
 
 func main() {
@@ -82,15 +83,23 @@ func newCommand(logConfig *logs.LoggingConfiguration, features featuregate.Featu
 }
 
 type agentController struct {
-	NameToWrapped map[string]*pflag.Flag
+	ObservabilityOptions observability.ObservabilityOptions[*pflag.FlagSet]
+	NameToWrapped        map[string]*pflag.Flag
 }
 
 func newControllerCommand() *cobra.Command {
-	ac := agentController{NameToWrapped: make(map[string]*pflag.Flag)}
+	agentObservability := agent.NewObservabilityOptions()
+	ac := agentController{
+		ObservabilityOptions: observability.ObservabilityOptions[*pflag.FlagSet]{
+			MetricsBindAddr: ":9280",
+			PprofBindAddr:   ":9282",
+		},
+		NameToWrapped: make(map[string]*pflag.Flag)}
 	agentLogConfig := logs.NewLoggingConfiguration()
 	agentUserOptions := agent.NewAgentUserOptions()
 	flagsOnAgent := pflag.NewFlagSet("on-agent", pflag.ContinueOnError)
 	flagsFromAgent := pflag.NewFlagSet("from-agent", pflag.ContinueOnError)
+	agentObservability.AddToFlagSet(flagsOnAgent)
 	logs.AddFlags(agentLogConfig, flagsOnAgent)
 	agentUserOptions.AddToFlagSet(flagsFromAgent)
 	cmd := cmdfactory.
@@ -98,6 +107,7 @@ func newControllerCommand() *cobra.Command {
 		NewCommand()
 	cmd.Use = "controller"
 	cmd.Short = "Start the addon controller"
+	ac.ObservabilityOptions.AddToFlagSet(cmd.PersistentFlags())
 	for connector, flagSet := range map[string]*pflag.FlagSet{"on": flagsOnAgent, "from": flagsFromAgent} {
 		flagSet.VisitAll(func(flag *pflag.Flag) {
 			wrapped := *flag
@@ -123,6 +133,7 @@ func (ac *agentController) getPropagatedSettings(*clusterv1.ManagedCluster, *add
 }
 
 func (ac *agentController) runController(ctx context.Context, kubeConfig *rest.Config) error {
+	ac.ObservabilityOptions.StartServing(ctx)
 	addonClient, err := addonv1alpha1client.NewForConfig(kubeConfig)
 	if err != nil {
 		return err
