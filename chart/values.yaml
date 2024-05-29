@@ -6,13 +6,13 @@
 controller:
   verbosity: 2
 
-# Set the agent verbosity
-agent: {}
-  # hub-burst int Allowed burst in requests/sec for accessing the hub from the agent (default 10)
-  # hub-qps float Max average requests/sec for accessing the hub from the agent (default 5)
-  # local-burst int Allowed burst in requests/sec for accessing the local cluster from the agent (default 10)
-  # local-qps float Max average requests/sec for accessing the local cluster from the agent (default 5)
-  # log-flush-frequency duration Maximum number of seconds between log flushes on the agent (default 5s)
-  # logging-format string Sets the log format. Permitted formats: "json" (gated by LoggingBetaOptions), "text". on the agent (default "text")
-  # v Level number for the log level verbosity on the agent
-  # vmodule pattern=N,... comma-separated list of pattern=N settings for file-filtered logging (only works for text log format) on the agent
+# Command line flags for the agent
+agent:
+  hub_burst: 10 # int Allowed burst in requests/sec for accessing the hub from the agent (default 10)
+  hub_qps: 5 # float Max average requests/sec for accessing the hub from the agent (default 5)
+  local_burst: 10 # int Allowed burst in requests/sec for accessing the local cluster from the agent (default 10)
+  local_qps: 5 # float Max average requests/sec for accessing the local cluster from the agent (default 5)
+  log_flush_frequency: "5s" # duration Maximum number of seconds between log flushes on the agent (default 5s)
+  logging_format: text # string Sets the log format. Permitted formats: "json", "text". on the agent (default "text")
+  v: 0 # Level number for the log level verbosity on the agent
+  vmodule: "" # pattern=N,... comma-separated list of pattern=N settings for file-filtered logging (only works for text log format) on the agent

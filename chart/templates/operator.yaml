@@ -16,160 +16,163 @@ kind: ClusterRole
 metadata:
   name: addon-manager-role
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  - events
-  verbs:
-  - create
-  - delete
-  - deletecollection
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - addon.open-cluster-management.io
-  resources:
-  - addondeploymentconfigs
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - addon.open-cluster-management.io
-  resources:
-  - clustermanagementaddons
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - addon.open-cluster-management.io
-  resources:
-  - clustermanagementaddons/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - addon.open-cluster-management.io
-  resources:
-  - clustermanagementaddons/status
-  verbs:
-  - patch
-  - update
-- apiGroups:
-  - addon.open-cluster-management.io
-  resources:
-  - managedclusteraddons
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - update
-  - watch
-- apiGroups:
-  - addon.open-cluster-management.io
-  resources:
-  - managedclusteraddons/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - addon.open-cluster-management.io
-  resources:
-  - managedclusteraddons/status
-  verbs:
-  - patch
-  - update
-- apiGroups:
-  - certificates.k8s.io
-  resources:
-  - certificatesigningrequests
-  - certificatesigningrequests/approval
-  verbs:
-  - create
-  - get
-  - list
-  - update
-  - watch
-- apiGroups:
-  - certificates.k8s.io
-  resources:
-  - signers
-  verbs:
-  - approve
-- apiGroups:
-  - cluster.open-cluster-management.io
-  resources:
-  - managedclusters
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - control.kubestellar.io
-  resources:
-  - workstatuses
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - control.kubestellar.io
-  resources:
-  - workstatuses/status
-  verbs:
-  - patch
-  - update
-- apiGroups:
-  - coordination.k8s.io
-  resources:
-  - leases
-  verbs:
-  - create
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - rolebindings
-  - roles
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - update
-  - watch
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - subjectaccessreviews
-  verbs:
-  - create
-  - get
-- apiGroups:
-  - work.open-cluster-management.io
-  resources:
-  - manifestworks
-  verbs:
-  - create
-  - delete
-  - deletecollection
-  - get
-  - list
-  - patch
-  - update
-  - watch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - events
+    verbs:
+      - create
+      - delete
+      - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - addon.open-cluster-management.io
+    resources:
+      - addondeploymentconfigs
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - addon.open-cluster-management.io
+    resources:
+      - clustermanagementaddons
+    verbs:
+      - create
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - addon.open-cluster-management.io
+    resources:
+      - clustermanagementaddons/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - addon.open-cluster-management.io
+    resources:
+      - clustermanagementaddons/status
+    verbs:
+      - patch
+      - update
+  - apiGroups:
+      - addon.open-cluster-management.io
+    resources:
+      - managedclusteraddons
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - addon.open-cluster-management.io
+    resources:
+      - managedclusteraddons/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - addon.open-cluster-management.io
+    resources:
+      - managedclusteraddons/status
+    verbs:
+      - patch
+      - update
+  - apiGroups:
+      - certificates.k8s.io
+    resources:
+      - certificatesigningrequests
+      - certificatesigningrequests/approval
+    verbs:
+      - create
+      - get
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - certificates.k8s.io
+    resources:
+      - signers
+    verbs:
+      - approve
+  - apiGroups:
+      - cluster.open-cluster-management.io
+    resources:
+      - managedclusters
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - control.kubestellar.io
+    resources:
+      - workstatuses
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - control.kubestellar.io
+    resources:
+      - workstatuses/status
+    verbs:
+      - patch
+      - update
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - create
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - rolebindings
+      - roles
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
+      - get
+  - apiGroups:
+      - work.open-cluster-management.io
+    resources:
+      - manifestworks
+    verbs:
+      - create
+      - delete
+      - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -187,9 +190,9 @@ roleRef:
   kind: ClusterRole
   name: addon-manager-role
 subjects:
-- kind: ServiceAccount
-  name: addon-status-sa
-  namespace: open-cluster-management
+  - kind: ServiceAccount
+    name: addon-status-sa
+    namespace: open-cluster-management
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -216,55 +219,64 @@ spec:
         app: status-controller
     spec:
       containers:
-      - args:
-        - controller
-        env:
-        - name: STATUS_ADDDON_IMAGE_NAME
-          value: ko.local/ocm-status-addon:to_be_replaced
-        image: ko.local/ocm-status-addon:to_be_replaced
-        imagePullPolicy: IfNotPresent
-        name: status-controller
-        resources:
-          limits:
-            cpu: 500m
-            memory: 512Mi
-          requests:
-            cpu: 10m
-            memory: 64Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
+        - args:
+            - controller
+            - --v={{.Values.controller.verbosity}}
+            - --agent-hub-burst={{.Values.agent.hub_burst}}
+            - --agent-hub-qps={{.Values.agent.hub_qps}}
+            - --agent-local-burst={{.Values.agent.local_burst}}
+            - --agent-local-qps={{.Values.agent.local_qps}}
+            - --agent-log-flush-frequency={{.Values.agent.log_flush_frequency}}
+            - --agent-logging-format={{.Values.agent.logging_format}}
+            - --agent-v={{.Values.agent.v}}
+            - --agent-vmodule={{.Values.agent.vmodule}}
+          env:
+            - name: STATUS_ADDDON_IMAGE_NAME
+              value: ko.local/ocm-status-addon:to_be_replaced
+          image: ko.local/ocm-status-addon:replaced
+          imagePullPolicy: IfNotPresent
+          name: status-controller
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
       initContainers:
-      - args:
-        - |
-          echo -n "Waiting for managedclusteraddons CRD"
-          while ! kubectl get clustermanagementaddons.addon.open-cluster-management.io &> /dev/null ; do
-            echo -n "."
-            sleep 5
-          done
-          echo -e "\033[0;32m\xE2\x9C\x94\033[0m"
-          echo "Creating addon-status object:"
-          kubectl apply -f - <<EOF
-          apiVersion: addon.open-cluster-management.io/v1alpha1
-          kind: ClusterManagementAddOn
-          metadata:
-            name: addon-status
-            namespace: open-cluster-management
-          spec:
-            addOnMeta:
-              description: status addon provides full status on applied resources
-              displayName: addon-status
-            supportedConfigs:
-            - group: addon.open-cluster-management.io
-              resource: addondeploymentconfigs
-          EOF
-        command:
-        - sh
-        - -c
-        image: quay.io/kubestellar/kubectl:1.29.3
-        name: create-crd
+        - args:
+            - |
+              echo -n "Waiting for managedclusteraddons CRD"
+              while ! kubectl get clustermanagementaddons.addon.open-cluster-management.io &> /dev/null ; do
+                echo -n "."
+                sleep 5
+              done
+              echo -e "\033[0;32m\xE2\x9C\x94\033[0m"
+              echo "Creating addon-status object:"
+              kubectl apply -f - <<EOF
+              apiVersion: addon.open-cluster-management.io/v1alpha1
+              kind: ClusterManagementAddOn
+              metadata:
+                name: addon-status
+                namespace: open-cluster-management
+              spec:
+                addOnMeta:
+                  description: status addon provides full status on applied resources
+                  displayName: addon-status
+                supportedConfigs:
+                - group: addon.open-cluster-management.io
+                  resource: addondeploymentconfigs
+              EOF
+          command:
+            - sh
+            - -c
+          image: quay.io/kubestellar/kubectl:1.29.3
+          name: create-crd
       securityContext:
         runAsNonRoot: true
       serviceAccountName: addon-status-sa
