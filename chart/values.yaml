@@ -6,6 +6,15 @@
 controller:
   verbosity: 2
 
-# Set the agent verbosity
+# Command line flags for the agent
 agent:
-  verbosity: 2
+  hub_burst: 10 # int Allowed burst in requests/sec for accessing the hub from the agent
+  hub_qps: 5 # float Max average requests/sec for accessing the hub from the agent
+  local_burst: 10 # int Allowed burst in requests/sec for accessing the local cluster from the agent
+  local_qps: 5 # float Max average requests/sec for accessing the local cluster from the agent
+  log_flush_frequency: "5s" # duration Maximum number of seconds between log flushes on the agent
+  logging_format: text # string Sets the log format. Permitted formats: "json", "text". on the agent
+  metrics_bind_addr: ":8080" # string [host]:port at which to listen for HTTP requests for Prometheus /metrics requests on the agent
+  pprof_bind_addr: ":8082" # string [host]:port at which to listen for HTTP requests for go /debug/pprof requests on the agent
+  v: 0 # Level number for the log level verbosity on the agent
+  vmodule: "" # pattern=N,... comma-separated list of pattern=N settings for file-filtered logging (only works for text log format) on the agent

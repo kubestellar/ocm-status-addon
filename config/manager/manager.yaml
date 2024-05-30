@@ -73,4 +73,13 @@ spec:
         args:
         - "controller"
         - --v={{.Values.controller.verbosity}}
-        - --agent-v={{.Values.agent.verbosity}}
+        - "--agent-hub-burst={{.Values.agent.hub_burst}}"
+        - "--agent-hub-qps={{.Values.agent.hub_qps}}"
+        - "--agent-local-burst={{.Values.agent.local_burst}}"
+        - "--agent-local-qps={{.Values.agent.local_qps}}"
+        - "--agent-log-flush-frequency={{.Values.agent.log_flush_frequency}}"
+        - "--agent-logging-format={{.Values.agent.logging_format}}"
+        - "--agent-metrics-bind-addr={{.Values.agent.metrics_bind_addr}}"
+        - "--agent-pprof-bind-addr={{.Values.agent.pprof_bind_addr}}"
+        - "--agent-v={{.Values.agent.v}}"
+        - "--agent-vmodule={{.Values.agent.vmodule}}"
