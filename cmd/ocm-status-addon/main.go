@@ -5,6 +5,7 @@ import (
 	goflag "flag"
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -129,6 +130,7 @@ func (ac *agentController) getPropagatedSettings(*clusterv1.ManagedCluster, *add
 			settings = append(settings, setting)
 		}
 	}
+	sort.Strings(settings)
 	return map[string]any{"PropagatedSettings": settings}, nil
 }
 
