@@ -36,6 +36,8 @@ import (
 	cmdfactory "open-cluster-management.io/addon-framework/pkg/cmd/factory"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	crmetrics "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	crwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	v1alpha1 "github.com/kubestellar/ocm-status-addon/api/v1alpha1"
 	clientopts "github.com/kubestellar/ocm-status-addon/pkg/client-options"
@@ -140,9 +142,9 @@ func (o *AgentOptions) RunAgent(ctx context.Context, kubeconfig *rest.Config) er
 	managedConfig = o.LocalLimits.LimitConfig(managedConfig)
 	mgr, err := ctrl.NewManager(managedConfig, ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     o.ObservabilityOptions.MetricsBindAddr,
+		Metrics:                crmetrics.Options{BindAddress: o.ObservabilityOptions.MetricsBindAddr},
 		PprofBindAddress:       o.ObservabilityOptions.PprofBindAddr,
-		Port:                   9443,
+		WebhookServer:          crwebhook.NewServer(crwebhook.Options{}),
 		HealthProbeBindAddress: o.ProbeAddr,
 		LeaderElection:         o.EnableLeaderElection,
 		LeaderElectionID:       "c6f71c85.kflex.kubestellar.org",
