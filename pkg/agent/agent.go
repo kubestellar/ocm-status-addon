@@ -36,9 +36,7 @@ var excludedGVKs = map[string]bool{
 	"rbac.authorization.k8s.io/v1, Kind=RoleBinding":        true,
 	"/v1, Kind=Secret":         true,
 	"/v1, Kind=ConfigMap":      true,
-	"/v1, Kind=Namespace":      true,
 	"/v1, Kind=ServiceAccount": true,
-	"/v1, Kind=Service":        true,
 }
 
 // Agent tracks objects applied by the work agent by watching
