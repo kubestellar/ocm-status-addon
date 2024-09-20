@@ -14,6 +14,13 @@ spec:
     metadata:
       labels:
         app: status-agent
+      annotations:
+        profiles.grafana.com/cpu.port: "8082"
+        profiles.grafana.com/cpu.scrape: "true"
+        profiles.grafana.com/goroutine.port: "8082"
+        profiles.grafana.com/goroutine.scrape: "true"
+        profiles.grafana.com/memory.port: "8082"
+        profiles.grafana.com/memory.scrape: "true"
     spec:
       serviceAccountName: status-agent-sa
 {{- if .NodeSelector }}
@@ -42,6 +49,13 @@ spec:
       - name: status-agent
         image: {{ .Image }}
         imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+          name: metrics
+        - containerPort: 8082
+          protocol: TCP
+          name: debug-pprof
 {{- if or .HTTPProxy .HTTPSProxy}}
         env:
         {{- if .HTTPProxy }}
