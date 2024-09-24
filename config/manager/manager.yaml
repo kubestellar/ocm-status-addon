@@ -20,6 +20,13 @@ spec:
     metadata:
       labels:
         app: status-controller
+      annotations:
+        profiles.grafana.com/cpu.port: "9282"
+        profiles.grafana.com/cpu.scrape: "true"
+        profiles.grafana.com/goroutine.port: "9282"
+        profiles.grafana.com/goroutine.scrape: "true"
+        profiles.grafana.com/memory.port: "9282"
+        profiles.grafana.com/memory.scrape: "true"
     spec:
       securityContext:
         runAsNonRoot: true
@@ -55,6 +62,13 @@ spec:
       - name: status-controller
         image: controller
         imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9280
+          protocol: TCP
+          name: metrics
+        - containerPort: 9282
+          protocol: TCP
+          name: debug-pprof
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
