@@ -31,8 +31,8 @@ function create_and_register() {
   cluster=$1
   kind create cluster --name $cluster
   wait-for-cmd '[ $(kubectl --context kind-hub get ns open-cluster-management-hub -oname 2>/dev/null | wc -l) -eq 1 ]'
-  kubectl --context kind-hub -n open-cluster-management-hub wait --for=condition=available deploy cluster-manager-registration-controller --timeout=60s
-  kubectl --context kind-hub -n open-cluster-management-hub wait --for=condition=available deploy cluster-manager-registration-webhook --timeout=60s
+  kubectl --context kind-hub -n open-cluster-management-hub wait --for=condition=available deploy cluster-manager-registration-controller --timeout=120s
+  kubectl --context kind-hub -n open-cluster-management-hub wait --for=condition=available deploy cluster-manager-registration-webhook --timeout=120s
   clusteradm --context kind-hub get token | grep '^clusteradm join' | sed "s/<cluster_name>/${cluster}/" | awk '{print $0 " --context 'kind-${cluster}' --force-internal-endpoint-lookup"}' | sh
 }
 create_and_register cluster1
