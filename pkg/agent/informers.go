@@ -52,13 +52,9 @@ func (a *Agent) startInformers(gvrs []*schema.GroupVersionResource, uids []strin
 		if count == 1 {
 			a.logger.Info("starting informer", "key", key)
 			stopper := make(chan struct{})
-			defer close(stopper)
 			a.startInformer(*gvr, gvk, stopper, true)
 		}
-
 	}
-	// block to avoid closing channel
-	select {}
 }
 
 func (a *Agent) startInformer(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, stopper chan struct{}, restartable bool) {
