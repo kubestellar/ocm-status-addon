@@ -31,11 +31,20 @@ type WorkStatus struct {
 
 	Spec   WorkStatusSpec `json:"spec,omitempty"`
 	Status RawStatus      `json:"status,omitempty"`
+	StatusDetails StatusDetails `json:"statusDetails, omitempty"`
 }
 
 // Workstatus spec
 type WorkStatusSpec struct {
 	SourceRef SourceRef `json:"sourceRef,omitempty"`
+}
+
+// StatusDeatils spec
+type StatusDetails struct {
+	lastUpdateTime *metav1.Time          `json:"lastUpdateTime,omitempty"`
+	lastGeneration int64                 `json:"lastGeneration,omitempty"`
+	lastGenerationIsApplied  bool        `json:"lastGenerationIsApplied,omitempty"`
+	lastCurrencyUpdateTime  *metav1.Time `json:"lastCurrencyUpdateTime,omitempty"`
 }
 
 // +kubebuilder:object:root=true
