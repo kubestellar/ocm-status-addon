@@ -21,7 +21,7 @@ func NewClient(config *rest.Config) (*client.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	mapper, err := apiutil.NewDiscoveryRESTMapper(config, httpClient)
+	mapper, err := apiutil.NewDynamicRESTMapper(config, httpClient)
 	if err != nil {
 		return nil, err
 	}
