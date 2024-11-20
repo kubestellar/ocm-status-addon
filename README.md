@@ -14,7 +14,7 @@ and RBAC permissions to enable this functionality.
 
 ## Prereqs
 
-- go version 1.20 and up
+- go version 1.22 and up
 - make
 - kubectl
 - docker (or compatible docker engine that works with kind)
