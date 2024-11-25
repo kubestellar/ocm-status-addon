@@ -53,3 +53,10 @@ make ko-local-build
 make kind-load-image CLUSTERS="hub cluster1"
 make deploy DEFAULT_IMBS_CONTEXT=kind-hub CHART_INSTALL_EXTRA_ARGS="--set agent.v=5 --set agent.hub_burst=7"
 git restore config/manager/kustomization.yaml # restore newTag
+:
+: -------------------------------------------------------------------------
+: Wait for the agent to appear and come up
+:
+wait-for-cmd 'kubectl --context kind-cluster1 get deploy -n open-cluster-management-agent-addon status-agent'
+kubectl --context kind-cluster1 wait deploy -n open-cluster-management-agent-addon status-agent --for condition=Available --timeout 180s
+
