@@ -31,7 +31,7 @@ type WorkStatus struct {
 
 	Spec   WorkStatusSpec `json:"spec,omitempty"`
 	Status RawStatus      `json:"status,omitempty"`
-	StatusDetails StatusDetails `json:"statusDetails, omitempty"`
+	StatusDetails StatusDetails `json:"statusDetails"`
 }
 
 // Workstatus spec
@@ -39,11 +39,20 @@ type WorkStatusSpec struct {
 	SourceRef SourceRef `json:"sourceRef,omitempty"`
 }
 
-// StatusDetails spec
+// StatusDetails contains information about the last applied downsync propagation.
 type StatusDetails struct {
-	LastGeneration int64                 `json:"lastGeneration,omitempty"`
-	LastGenerationIsApplied  bool        `json:"lastGenerationIsApplied,omitempty"`
-	LastCurrencyUpdateTime  *metav1.Time `json:"lastCurrencyUpdateTime,omitempty"`
+	// `lastGeneration` is that last `ObjectMeta.Generation` from the WDS that
+	// propagated to the WEC. This is not to imply that it was successfully applied there;
+	// for that, see `lastGenerationIsApplied`.
+	// Zero means that none has yet propagated there.
+	LastGeneration int64                 `json:"lastGeneration"`
+	// `lastGenerationIsApplied` indicates whether `lastGeneration` has been successfully applied
+	LastGenerationIsApplied  bool        `json:"lastGenerationIsApplied"`
+	// `lastCurrencyUpdateTime` is the time of the latest update to either
+	// `lastGeneration` or `lastGenerationIsApplied`. More precisely, it is
+	// the time when the core became informed of the update.
+	// Before the first such update, this holds the zero value of `time.Time`.
+	LastCurrencyUpdateTime  *metav1.Time `json:"lastCurrencyUpdateTime"`
 }
 
 // +kubebuilder:object:root=true
