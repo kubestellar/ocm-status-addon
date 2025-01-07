@@ -39,7 +39,7 @@ type WorkStatusSpec struct {
 	SourceRef SourceRef `json:"sourceRef,omitempty"`
 }
 
-// StatusDetails contains information about the last applied downsync propagation.
+// StatusDetails contains information about downsync propagations, which may or may not have been applied
 type StatusDetails struct {
 	// `lastGeneration` is that last `ObjectMeta.Generation` from the WDS that
 	// propagated to the WEC. This is not to imply that it was successfully applied there;
