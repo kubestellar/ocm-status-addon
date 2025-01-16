@@ -52,7 +52,7 @@ type StatusDetails struct {
 	// `lastGeneration` or `lastGenerationIsApplied`. More precisely, it is
 	// the time when the core became informed of the update.
 	// Before the first such update, this holds the zero value of `time.Time`.
-	LastCurrencyUpdateTime  *metav1.Time `json:"lastCurrencyUpdateTime"`
+	LastCurrencyUpdateTime  metav1.Time `json:"lastCurrencyUpdateTime"`
 }
 
 // +kubebuilder:object:root=true
