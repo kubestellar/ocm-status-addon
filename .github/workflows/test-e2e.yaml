@@ -31,7 +31,7 @@ jobs:
         id: install
 
       - name: Install and setup ko
-        uses: ko-build/setup-ko@v0.8
+        uses: ko-build/setup-ko@v0.9
         env:
           KO_DOCKER_REPO: ko.local
 
