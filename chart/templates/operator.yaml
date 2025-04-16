@@ -215,6 +215,13 @@ spec:
       app: status-controller
   template:
     metadata:
+      annotations:
+        profiles.grafana.com/cpu.port: "9282"
+        profiles.grafana.com/cpu.scrape: "true"
+        profiles.grafana.com/goroutine.port: "9282"
+        profiles.grafana.com/goroutine.scrape: "true"
+        profiles.grafana.com/memory.port: "9282"
+        profiles.grafana.com/memory.scrape: "true"
       labels:
         app: status-controller
     spec:
@@ -228,14 +235,23 @@ spec:
             - --agent-local-qps={{.Values.agent.local_qps}}
             - --agent-log-flush-frequency={{.Values.agent.log_flush_frequency}}
             - --agent-logging-format={{.Values.agent.logging_format}}
+            - --agent-metrics-bind-addr={{.Values.agent.metrics_bind_addr}}
+            - --agent-pprof-bind-addr={{.Values.agent.pprof_bind_addr}}
             - --agent-v={{.Values.agent.v}}
             - --agent-vmodule={{.Values.agent.vmodule}}
           env:
             - name: STATUS_ADDDON_IMAGE_NAME
-              value: ko.local/ocm-status-addon:to_be_replaced
-          image: ko.local/ocm-status-addon:replaced
+              value: ko.local/ocm-status-addon:39e5223
+          image: ko.local/ocm-status-addon:39e5223
           imagePullPolicy: IfNotPresent
           name: status-controller
+          ports:
+            - containerPort: 9280
+              name: metrics
+              protocol: TCP
+            - containerPort: 9282
+              name: debug-pprof
+              protocol: TCP
           resources:
             limits:
               cpu: 500m
