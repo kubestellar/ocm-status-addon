@@ -280,10 +280,14 @@ spec:
               metadata:
                 name: addon-status
                 namespace: open-cluster-management
+                annotations:
+                  addon.open-cluster-management.io/lifecycle: addon-manager
               spec:
                 addOnMeta:
                   description: status addon provides full status on applied resources
                   displayName: addon-status
+                installStrategy:
+                  type: Manual
                 supportedConfigs:
                 - group: addon.open-cluster-management.io
                   resource: addondeploymentconfigs
