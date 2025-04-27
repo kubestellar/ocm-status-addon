@@ -57,7 +57,10 @@ spec:
               description: status addon provides full status on applied resources
               displayName: addon-status
             installStrategy:
-              type: Manual
+              type: Placements
+              placements:
+              - name: global
+                namespace: {{ .Release.Namespace }}
             supportedConfigs:
             - group: addon.open-cluster-management.io
               resource: addondeploymentconfigs
