@@ -241,8 +241,8 @@ spec:
             - --agent-vmodule={{.Values.agent.vmodule}}
           env:
             - name: STATUS_ADDDON_IMAGE_NAME
-              value: ko.local/ocm-status-addon:39e5223
-          image: ko.local/ocm-status-addon:39e5223
+              value: ko.local/ocm-status-addon:38156c6
+          image: ko.local/ocm-status-addon:38156c6
           imagePullPolicy: IfNotPresent
           name: status-controller
           ports:
@@ -287,7 +287,10 @@ spec:
                   description: status addon provides full status on applied resources
                   displayName: addon-status
                 installStrategy:
-                  type: Manual
+                  type: Placements
+                  placements:
+                  - name: global
+                    namespace: {{ .Release.Namespace }}
                 supportedConfigs:
                 - group: addon.open-cluster-management.io
                   resource: addondeploymentconfigs
@@ -300,3 +303,23 @@ spec:
       securityContext:
         runAsNonRoot: true
       serviceAccountName: addon-status-sa
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: global
+  namespace: open-cluster-management
+spec:
+  clusterSets:
+    - global
+  predicates:
+    - requiredClusterSelector:
+        labelSelector: {}
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: global
+  namespace: open-cluster-management
+spec:
+  clusterSet: global

@@ -1,7 +1,7 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: status-controller
+  name: addon-status-controller
   labels:
     control-plane: controller-manager
     app.kubernetes.io/name: deployment
