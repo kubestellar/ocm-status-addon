@@ -168,6 +168,9 @@ func (ac *agentController) runController(ctx context.Context, kubeConfig *rest.C
 			),
 		).
 		WithAgentRegistrationOption(registrationOption).
+		WithAgentInstallNamespace(func(*addonapiv1alpha1.ManagedClusterAddOn) (string, error) {
+			return controller.InstallationNamespace, nil
+		}).
 		// WithInstallStrategy(addonagent.InstallAllStrategy(controller.InstallationNamespace)).
 		WithAgentHealthProber(controller.AgentHealthProber()).
 		BuildTemplateAgentAddon()
