@@ -65,6 +65,35 @@ spec:
             description: Manifest represents a resource to be deployed
             type: object
             x-kubernetes-preserve-unknown-fields: true
+          statusDetails:
+            description: StatusDetails contains information about downsync propagations,
+              which may or may not have been applied
+            properties:
+              lastCurrencyUpdateTime:
+                description: |-
+                  `lastCurrencyUpdateTime` is the time of the latest update to either
+                  `lastGeneration` or `lastGenerationIsApplied`. More precisely, it is
+                  the time when the core became informed of the update.
+                  Before the first such update, this holds `time.Unix(0, 0)`
+                format: date-time
+                type: string
+              lastGeneration:
+                description: |-
+                  `lastGeneration` is that last `ObjectMeta.Generation` from the WDS that
+                  propagated to the WEC. This is not to imply that it was successfully applied there;
+                  for that, see `lastGenerationIsApplied`.
+                  Zero means that none has yet propagated there.
+                format: int64
+                type: integer
+              lastGenerationIsApplied:
+                description: '`lastGenerationIsApplied` indicates whether `lastGeneration`
+                  has been successfully applied'
+                type: boolean
+            required:
+            - lastCurrencyUpdateTime
+            - lastGeneration
+            - lastGenerationIsApplied
+            type: object
         type: object
     served: true
     storage: true

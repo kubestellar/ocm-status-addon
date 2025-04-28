@@ -219,6 +219,9 @@ func (a *Agent) handleWorkStatus(obj runtime.Object, isBeingDeleted bool) error 
 				Name:      mObj.GetName(),
 				Namespace: mObj.GetNamespace(),
 			}
+			workStatus.StatusDetails = v1alpha1.StatusDetails{
+				LastCurrencyUpdateTime: metav1.NewTime(time.Unix(0, 0)),
+			}
 
 			if err = a.hubClient.Create(ctx, workStatus, &client.CreateOptions{}); err != nil {
 				return fmt.Errorf("failed to create workStatus: %w", err)
