@@ -1,7 +1,7 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: status-controller
+  name: addon-status-controller
   labels:
     control-plane: controller-manager
     app.kubernetes.io/name: deployment
@@ -50,10 +50,17 @@ spec:
           metadata:
             name: addon-status
             namespace: open-cluster-management
+            annotations:
+              addon.open-cluster-management.io/lifecycle: addon-manager
           spec:
             addOnMeta:
               description: status addon provides full status on applied resources
               displayName: addon-status
+            installStrategy:
+              type: Placements
+              placements:
+              - name: global
+                namespace: {{ .Release.Namespace }}
             supportedConfigs:
             - group: addon.open-cluster-management.io
               resource: addondeploymentconfigs

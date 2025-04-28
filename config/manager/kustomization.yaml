@@ -1,4 +1,6 @@
 resources:
+- managedclustersetbinding.yaml
+- placement.yaml
 - manager.yaml
 
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -13,7 +15,7 @@ replacements:
     fieldPath: spec.template.spec.containers.[name=status-controller].image
     group: apps
     kind: Deployment
-    name: status-controller
+    name: addon-status-controller
     version: v1
   targets:
   - fieldPaths:
@@ -21,5 +23,5 @@ replacements:
     select:
       group: apps
       kind: Deployment
-      name: status-controller
+      name: addon-status-controller
       version: v1
