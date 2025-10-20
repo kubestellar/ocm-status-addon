@@ -19,11 +19,11 @@ jobs:
     name: Test workstatus operations
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.1.1
+      - uses: actions/checkout@v5.0.0
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6.0.0
         with:
-          go-version: v1.23
+          go-version: v1.24
           cache: true
 
       - name: Install kubectl
