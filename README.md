@@ -25,7 +25,7 @@ and RBAC permissions to enable this functionality.
 
 1. Clone this repo.
 
-2. Setup KubeStellar as described in [setup](https://docs.kubestellar.io/release-0.23.0-rc2/direct/common-setup-core-chart/), then install
+2. Setup KubeStellar as described in [setup](https://docs.kubestellar.io/release-0.29.0/direct/get-started/), then install
    status add-on with helm:
     ```shell
     helm --kube-context imbs1 upgrade --install ocm-status-addon -n open-cluster-management oci://ghcr.io/kubestellar/ocm-status-addon-chart --version <latest version>
@@ -39,7 +39,7 @@ and RBAC permissions to enable this functionality.
 
 ## Using the Add-On
 
-1. Deploy a workload with KubeStellar, for example following [Scenario 4](https://docs.kubestellar.io/release-0.23.1/direct/example-scenarios/#scenario-4-singleton-status)
+1. Deploy a workload with KubeStellar, for example following [Scenario 4](https://docs.kubestellar.io/release-0.29.0/direct/example-scenarios/#scenario-4-singleton-status)
 
 2. Verify that `WorkStatus` objects are created in `imbs1` managed clusters namespaces 
     ```shell
