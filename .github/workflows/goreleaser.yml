@@ -24,7 +24,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - uses: actions/setup-go@v6.0.0
+    - uses: actions/setup-go@v6.1.0
       with:
         go-version: v1.24
 
