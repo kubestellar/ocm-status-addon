@@ -30,7 +30,8 @@ clusteradm init 1>/dev/null
 function create_and_register() {
   cluster=$1
   kind create cluster --name $cluster
-  wait-for-cmd '[ $(kubectl --context kind-hub get ns open-cluster-management-hub -oname 2>/dev/null | wc -l) -eq 1 ]'
+  kubectl --context kind-hub wait --for create ns open-cluster-management-hub --timeout=120s
+  kubectl --context kind-hub -n open-cluster-management-hub wait --for create deploy cluster-manager-registration-controller --timeout=120s
   kubectl --context kind-hub -n open-cluster-management-hub wait --for=condition=available deploy cluster-manager-registration-controller --timeout=120s
   kubectl --context kind-hub -n open-cluster-management-hub wait --for=condition=available deploy cluster-manager-registration-webhook --timeout=120s
   clusteradm --context kind-hub get token | grep '^clusteradm join' | sed "s/<cluster_name>/${cluster}/" | awk '{print $0 " --context 'kind-${cluster}' --force-internal-endpoint-lookup"}' | sh
@@ -57,6 +58,5 @@ git restore config/manager/kustomization.yaml # restore newTag
 : -------------------------------------------------------------------------
 : Wait for the agent to appear and come up
 :
-wait-for-cmd 'kubectl --context kind-cluster1 get deploy -n open-cluster-management-agent-addon status-agent'
+kubectl --context kind-cluster1 wait deploy -n open-cluster-management-agent-addon status-agent --for create --timeout 180s
 kubectl --context kind-cluster1 wait deploy -n open-cluster-management-agent-addon status-agent --for condition=Available --timeout 180s
-
