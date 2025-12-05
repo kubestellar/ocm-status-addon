@@ -14,9 +14,9 @@ require (
 	k8s.io/component-base v0.32.10
 	k8s.io/klog/v2 v2.130.1
 	open-cluster-management.io/addon-framework v1.0.1
-	open-cluster-management.io/api v1.0.1
+	open-cluster-management.io/api v1.0.0
 	sigs.k8s.io/controller-runtime v0.20.4
-	
+
 )
 
 require (
@@ -115,7 +115,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	helm.sh/helm/v3 v3.17.3 // indirect
 	k8s.io/apiextensions-apiserver v0.32.2 // indirect
-	k8s.io/kms v0.32.2 // indirect
+	k8s.io/kms v0.32.10 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
 	open-cluster-management.io/sdk-go v1.0.0 // indirect
