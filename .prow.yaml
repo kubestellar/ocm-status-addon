@@ -1,0 +1,20 @@
+presubmits:
+  - name: pull-ocm-status-addon-test-unit
+    always_run: true
+    decorate: true
+    clone_uri: "https://github.com/kubestellar/ocm-status-addon"
+    labels:
+      preset-goproxy: "true"
+    spec:
+      containers:
+        - image: ghcr.io/kubestellar/infra/build:1.24.11-1
+          command:
+            - make
+            - test
+          env:
+            - name: USE_GOTESTSUM
+              value: "1"
+          resources:
+            requests:
+              memory: 4Gi
+              cpu: 2
