@@ -5,7 +5,7 @@ go 1.24.5
 require (
 	github.com/go-logr/logr v1.4.2
 	github.com/spf13/cobra v1.8.1
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.10
 	golang.org/x/time v0.7.0
 	k8s.io/api v0.32.10
 	k8s.io/apimachinery v0.32.10
@@ -16,7 +16,6 @@ require (
 	open-cluster-management.io/addon-framework v1.0.1
 	open-cluster-management.io/api v1.0.0
 	sigs.k8s.io/controller-runtime v0.20.4
-
 )
 
 require (
