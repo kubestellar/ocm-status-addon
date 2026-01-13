@@ -60,3 +60,4 @@ To uninstall the status add-on, use the following helm command:
 ```shell
 helm --kube-context imbs1 -n open-cluster-management delete ocm-status-addon
 ```
+<!-- CI Test: 2026-01-13T03:01:58Z -->
