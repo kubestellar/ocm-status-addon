@@ -5,7 +5,7 @@ go 1.24.5
 require (
 	github.com/go-logr/logr v1.4.2
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/pflag v1.0.6
+	github.com/spf13/pflag v1.0.10
 	golang.org/x/time v0.9.0
 	k8s.io/api v0.34.1
 	k8s.io/apimachinery v0.34.1
