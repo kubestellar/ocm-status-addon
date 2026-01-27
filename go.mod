@@ -3,7 +3,7 @@ module github.com/kubestellar/ocm-status-addon
 go 1.24.5
 
 require (
-	github.com/go-logr/logr v1.4.2
+	github.com/go-logr/logr v1.4.3
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.7
 	golang.org/x/time v0.12.0
