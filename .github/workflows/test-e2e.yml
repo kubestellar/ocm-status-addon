@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
         with:
-          go-version: v1.24
+          go-version: v1.26
           cache: true
 
       - name: Install kubectl
@@ -37,7 +37,7 @@ jobs:
 
       - name: Install clusteradm
         run: |
-          curl -L https://raw.githubusercontent.com/open-cluster-management-io/clusteradm/main/install.sh | bash
+          go install open-cluster-management.io/clusteradm/cmd/clusteradm@v1.1.2
 
       - name: Run test
         run: |
