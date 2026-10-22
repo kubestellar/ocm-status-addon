@@ -37,7 +37,7 @@ jobs:
 
       - name: Install clusteradm
         run: |
-          curl -L https://raw.githubusercontent.com/open-cluster-management-io/clusteradm/main/install.sh | bash
+          go install open-cluster-management.io/clusteradm/cmd/clusteradm@v1.1.2
 
       - name: Run test
         run: |
