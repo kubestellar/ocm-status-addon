@@ -53,12 +53,14 @@ rules:
       - addon.open-cluster-management.io
     resources:
       - clustermanagementaddons/finalizers
+      - managedclusteraddons/finalizers
     verbs:
       - update
   - apiGroups:
       - addon.open-cluster-management.io
     resources:
       - clustermanagementaddons/status
+      - managedclusteraddons/status
     verbs:
       - patch
       - update
@@ -73,19 +75,6 @@ rules:
       - list
       - update
       - watch
-  - apiGroups:
-      - addon.open-cluster-management.io
-    resources:
-      - managedclusteraddons/finalizers
-    verbs:
-      - update
-  - apiGroups:
-      - addon.open-cluster-management.io
-    resources:
-      - managedclusteraddons/status
-    verbs:
-      - patch
-      - update
   - apiGroups:
       - certificates.k8s.io
     resources:
@@ -241,8 +230,8 @@ spec:
             - --agent-vmodule={{.Values.agent.vmodule}}
           env:
             - name: STATUS_ADDDON_IMAGE_NAME
-              value: ko.local/ocm-status-addon:38156c6
-          image: ko.local/ocm-status-addon:38156c6
+              value: ko.local/ocm-status-addon:fcbfa7c
+          image: ko.local/ocm-status-addon:fcbfa7c
           imagePullPolicy: IfNotPresent
           name: status-controller
           ports:
