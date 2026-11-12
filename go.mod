@@ -7,15 +7,15 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	golang.org/x/time v0.12.0
-	k8s.io/api v0.34.1
-	k8s.io/apimachinery v0.34.1
-	k8s.io/apiserver v0.34.1
-	k8s.io/client-go v0.34.1
-	k8s.io/component-base v0.34.1
+	k8s.io/api v0.34.13
+	k8s.io/apimachinery v0.34.13
+	k8s.io/apiserver v0.34.13
+	k8s.io/client-go v0.34.13
+	k8s.io/component-base v0.34.13
 	k8s.io/klog/v2 v2.130.1
 	open-cluster-management.io/addon-framework v1.1.2
 	open-cluster-management.io/api v1.1.0
-	sigs.k8s.io/controller-runtime v0.22.4
+	sigs.k8s.io/controller-runtime v0.22.5
 )
 
 require (
@@ -107,14 +107,14 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260706201446-f0a921348800 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800 // indirect
 	google.golang.org/grpc v1.84.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	helm.sh/helm/v3 v3.18.6 // indirect
-	k8s.io/apiextensions-apiserver v0.34.1 // indirect
-	k8s.io/kms v0.34.1 // indirect
+	k8s.io/apiextensions-apiserver v0.34.13 // indirect
+	k8s.io/kms v0.34.13 // indirect
 	k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b // indirect
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397 // indirect
 	open-cluster-management.io/sdk-go v1.1.0 // indirect
